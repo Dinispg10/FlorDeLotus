@@ -35,10 +35,14 @@ Supabase, por isso vários computadores do salão veem a mesma agenda.
   horas). Aparecem às riscas na agenda e a app recusa marcar em cima delas. Ao criar uma
   folga em cima de marcações existentes, avisa quantas são antes de deixar continuar.
 - **Clientes**: pesquisa por nome ou telefone, reutiliza a ficha existente em vez de
-  duplicar, e permite editar/desativar. A ficha mostra as visitas, o total em serviços, a
+  duplicar, e permite editar e apagar. Só se apaga quem já não tem marcações por
+  acontecer; as antigas ficam nas estatísticas, sem o nome. A ficha mostra as visitas, o total em serviços, a
   última e a próxima visita, e o histórico de marcações — clicar numa abre-a na agenda.
-- **Definições**: horário do salão dia a dia, funcionárias (nome, cor na agenda e folgas)
-  e serviços (duração e preço), nas três sub-abas.
+- **Definições**: horário do salão dia a dia, funcionárias (nome, cor na agenda e folgas;
+  apagam-se com a mesma regra dos clientes) e serviços (duração e preço), nas três
+  sub-abas.
+- **Feedback das ações** ("Marcação guardada", erros) numa notificação que flutua em baixo,
+  ao centro; os erros ficam até serem fechados.
 
 ## Pôr a trabalhar
 

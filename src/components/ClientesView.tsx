@@ -3,6 +3,7 @@ import * as api from "../lib/api";
 import { normalizarTelefone, normalizarTexto } from "../lib/agenda";
 import type { Agendamento, Cliente, Funcionario, Servico } from "../lib/types";
 import ClienteModal from "./ClienteModal";
+import ConfirmarModal from "./ConfirmarModal";
 
 type Props = {
   clientes: Cliente[];
@@ -28,22 +29,22 @@ export default function ClientesView({
   onAviso,
 }: Props) {
   const [procura, setProcura] = useState("");
-  const [mostrarInativos, setMostrarInativos] = useState(false);
   const [modal, setModal] = useState<EstadoModal | null>(null);
+  const [aApagar, setAApagar] = useState<Cliente | null>(null);
+  const [aProcessar, setAProcessar] = useState(false);
 
   const visiveis = useMemo(() => {
     const texto = normalizarTexto(procura);
     const digitos = normalizarTelefone(procura);
+    if (!texto) return clientes;
 
     return clientes.filter((cliente) => {
-      if (!cliente.ativo && !mostrarInativos) return false;
-      if (!texto) return true;
       const porNome = normalizarTexto(cliente.nome).includes(texto);
       const porTelefone =
         digitos.length >= 3 && normalizarTelefone(cliente.telefone).includes(digitos);
       return porNome || porTelefone;
     });
-  }, [clientes, mostrarInativos, procura]);
+  }, [clientes, procura]);
 
   const marcacoesPorCliente = useMemo(() => {
     const contagem = new Map<string, number>();
@@ -64,12 +65,18 @@ export default function ClientesView({
     onAviso(criado ? "Cliente criado." : "Ficha do cliente atualizada.");
   };
 
-  const alternarAtivo = async (cliente: Cliente) => {
+  const apagar = async () => {
+    if (!aApagar) return;
+    setAProcessar(true);
     try {
-      const atualizado = await api.atualizarCliente(cliente.id, { ativo: !cliente.ativo });
-      onClientesAlterados(clientes.map((item) => (item.id === atualizado.id ? atualizado : item)));
+      await api.apagarCliente(aApagar);
+      onClientesAlterados(clientes.filter((item) => item.id !== aApagar.id));
+      onAviso(`Ficha de ${aApagar.nome} apagada.`);
     } catch (causa) {
-      onErro(causa instanceof Error ? causa.message : "Não foi possível alterar o cliente.");
+      onErro(causa instanceof Error ? causa.message : "Não foi possível apagar o cliente.");
+    } finally {
+      setAProcessar(false);
+      setAApagar(null);
     }
   };
 
@@ -84,14 +91,6 @@ export default function ClientesView({
             </p>
           </div>
           <div className="acoes-registo">
-            <label className="checkbox">
-              <input
-                type="checkbox"
-                checked={mostrarInativos}
-                onChange={(evento) => setMostrarInativos(evento.target.checked)}
-              />
-              Mostrar inativos
-            </label>
             <button
               type="button"
               className="primary-button"
@@ -119,7 +118,7 @@ export default function ClientesView({
         ) : (
           <ul className="lista-registos ampla">
             {visiveis.map((cliente) => (
-              <li key={cliente.id} className={cliente.ativo ? "" : "inativo"}>
+              <li key={cliente.id}>
                 <div>
                   <strong>{cliente.nome}</strong>
                   <span>{cliente.telefone || "sem telefone"}</span>
@@ -127,7 +126,8 @@ export default function ClientesView({
                   {marcacoesPorCliente.get(cliente.id) ? (
                     <span className="contagem">
                       {marcacoesPorCliente.get(cliente.id)}{" "}
-                      {marcacoesPorCliente.get(cliente.id) === 1 ? "marcação" : "marcações"} esta semana
+                      {marcacoesPorCliente.get(cliente.id) === 1 ? "marcação" : "marcações"} esta
+                      semana
                     </span>
                   ) : null}
                 </div>
@@ -137,14 +137,14 @@ export default function ClientesView({
                     className="ghost-button"
                     onClick={() => setModal({ cliente })}
                   >
-                    Abrir
+                    Abrir ficha
                   </button>
                   <button
                     type="button"
-                    className="ghost-button"
-                    onClick={() => alternarAtivo(cliente)}
+                    className="danger-button"
+                    onClick={() => setAApagar(cliente)}
                   >
-                    {cliente.ativo ? "Desativar" : "Reativar"}
+                    Apagar
                   </button>
                 </div>
               </li>
@@ -166,6 +166,31 @@ export default function ClientesView({
             onAbrirMarcacao(agendamento);
           }}
         />
+      ) : null}
+
+      {aApagar ? (
+        <ConfirmarModal
+          titulo="Apagar esta ficha?"
+          textoConfirmar="Sim, apagar"
+          textoAProcessar="A apagar..."
+          aProcessar={aProcessar}
+          onConfirmar={apagar}
+          onVoltar={() => setAApagar(null)}
+        >
+          <p>
+            <strong>{aApagar.nome}</strong>
+            {aApagar.telefone ? (
+              <>
+                <br />
+                {aApagar.telefone}
+              </>
+            ) : null}
+          </p>
+          <p>
+            As marcações que já passaram continuam a contar nas estatísticas, sem o nome. A
+            ficha não pode ser recuperada.
+          </p>
+        </ConfirmarModal>
       ) : null}
     </section>
   );

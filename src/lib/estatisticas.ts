@@ -256,8 +256,6 @@ export const porFuncionaria = (
   precoDe: (servicoId: string) => number,
 ): LinhaFuncionaria[] =>
   funcionarios
-    // Uma funcionária já desativada ainda conta se trabalhou neste período.
-    .filter((item) => item.ativo || marcacoes.some((m) => m.funcionarioId === item.id))
     .map((funcionaria) => {
       const suas = marcacoes.filter((item) => item.funcionarioId === funcionaria.id);
       const marcados = suas.reduce((total, item) => total + item.duracaoMinutos, 0);

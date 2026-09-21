@@ -83,7 +83,7 @@ export default function FuncionariaModal({
     try {
       const guardada = funcionaria
         ? await api.atualizarFuncionario(funcionaria.id, { nome: nome.trim(), cor })
-        : await api.criarFuncionario({ nome: nome.trim(), cor, ativo: true });
+        : await api.criarFuncionario({ nome: nome.trim(), cor });
 
       onGuardado(guardada, funcionaria === null);
     } catch (causa) {

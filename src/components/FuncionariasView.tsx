@@ -1,6 +1,7 @@
 import { useState } from "react";
 import * as api from "../lib/api";
 import type { Funcionario } from "../lib/types";
+import ConfirmarModal from "./ConfirmarModal";
 import FuncionariaModal from "./FuncionariaModal";
 
 type Props = {
@@ -19,9 +20,8 @@ export default function FuncionariasView({
   onAviso,
 }: Props) {
   const [modal, setModal] = useState<{ item: Funcionario | null } | null>(null);
-  const [mostrarInativas, setMostrarInativas] = useState(false);
-
-  const visiveis = funcionarios.filter((item) => item.ativo || mostrarInativas);
+  const [aApagar, setAApagar] = useState<Funcionario | null>(null);
+  const [aProcessar, setAProcessar] = useState(false);
 
   const aoGuardar = (funcionaria: Funcionario, criada: boolean) => {
     onFuncionariosAlterados(
@@ -34,16 +34,19 @@ export default function FuncionariasView({
     onAviso(criada ? "Funcionária criada." : "Funcionária atualizada.");
   };
 
-  const alternarAtivo = async (funcionaria: Funcionario) => {
+  const apagar = async () => {
+    if (!aApagar) return;
+    setAProcessar(true);
     try {
-      const atualizada = await api.atualizarFuncionario(funcionaria.id, {
-        ativo: !funcionaria.ativo,
-      });
-      onFuncionariosAlterados(
-        funcionarios.map((item) => (item.id === atualizada.id ? atualizada : item)),
-      );
+      await api.apagarFuncionario(aApagar);
+      onFuncionariosAlterados(funcionarios.filter((item) => item.id !== aApagar.id));
+      onAusenciasAlteradas();
+      onAviso(`${aApagar.nome} saiu da equipa.`);
     } catch (causa) {
-      onErro(causa instanceof Error ? causa.message : "Não foi possível alterar a funcionária.");
+      onErro(causa instanceof Error ? causa.message : "Não foi possível apagar a funcionária.");
+    } finally {
+      setAProcessar(false);
+      setAApagar(null);
     }
   };
 
@@ -52,40 +55,31 @@ export default function FuncionariasView({
       <div className="cartao">
         <div className="cartao-topo">
           <div>
-            <h2>Funcionárias ({visiveis.length})</h2>
+            <h2>Funcionárias ({funcionarios.length})</h2>
             <p className="subtitulo">
               Cada uma tem uma coluna na agenda. As folgas e as férias marcam-se na ficha.
             </p>
           </div>
           <div className="acoes-registo">
-            <label className="checkbox">
-              <input
-                type="checkbox"
-                checked={mostrarInativas}
-                onChange={(evento) => setMostrarInativas(evento.target.checked)}
-              />
-              Mostrar inativas
-            </label>
             <button type="button" className="primary-button" onClick={() => setModal({ item: null })}>
               + Nova funcionária
             </button>
           </div>
         </div>
 
-        {visiveis.length === 0 ? (
+        {funcionarios.length === 0 ? (
           <div className="estado-vazio">
             Ainda não há funcionárias. Adiciona a equipa para a agenda ganhar colunas.
           </div>
         ) : (
           <ul className="lista-registos ampla">
-            {visiveis.map((funcionaria) => (
-              <li key={funcionaria.id} className={funcionaria.ativo ? "" : "inativo"}>
+            {funcionarios.map((funcionaria) => (
+              <li key={funcionaria.id}>
                 <div>
                   <strong>
                     <span className="ponto-cor" style={{ background: funcionaria.cor }} />
                     {funcionaria.nome}
                   </strong>
-                  <span>{funcionaria.ativo ? "Ativa" : "Inativa"}</span>
                 </div>
                 <div className="acoes-registo">
                   <button
@@ -97,10 +91,10 @@ export default function FuncionariasView({
                   </button>
                   <button
                     type="button"
-                    className="ghost-button"
-                    onClick={() => alternarAtivo(funcionaria)}
+                    className="danger-button"
+                    onClick={() => setAApagar(funcionaria)}
                   >
-                    {funcionaria.ativo ? "Desativar" : "Reativar"}
+                    Apagar
                   </button>
                 </div>
               </li>
@@ -116,6 +110,23 @@ export default function FuncionariasView({
           onGuardado={aoGuardar}
           onAusenciasAlteradas={onAusenciasAlteradas}
         />
+      ) : null}
+
+      {aApagar ? (
+        <ConfirmarModal
+          titulo={`Apagar ${aApagar.nome}?`}
+          textoConfirmar="Sim, apagar"
+          textoAProcessar="A apagar..."
+          aProcessar={aProcessar}
+          onConfirmar={apagar}
+          onVoltar={() => setAApagar(null)}
+        >
+          <p>
+            Deixa de ter coluna na agenda e as folgas dela são apagadas. As marcações que já
+            passaram continuam a contar nas estatísticas, sem o nome.
+          </p>
+          <p>Não pode ser recuperada.</p>
+        </ConfirmarModal>
       ) : null}
     </>
   );

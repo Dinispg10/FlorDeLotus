@@ -2,7 +2,6 @@ export type Funcionario = {
   id: string;
   nome: string;
   cor: string;
-  ativo: boolean;
 };
 
 export type Servico = {
@@ -18,7 +17,6 @@ export type Cliente = {
   nome: string;
   telefone: string;
   observacoes: string;
-  ativo: boolean;
 };
 
 /**

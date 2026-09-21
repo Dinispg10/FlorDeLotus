@@ -15,7 +15,6 @@ CREATE TABLE funcionarios (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   nome TEXT NOT NULL,
   cor TEXT DEFAULT '#8B5CF6',
-  ativo BOOLEAN DEFAULT TRUE,
   criado_em TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -24,7 +23,6 @@ CREATE TABLE clientes (
   nome TEXT NOT NULL,
   telefone TEXT,
   observacoes TEXT,
-  ativo BOOLEAN DEFAULT TRUE,
   criado_em TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -39,8 +37,11 @@ CREATE TABLE servicos (
 
 CREATE TABLE agendamentos (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  cliente_id UUID REFERENCES clientes(id),
-  funcionario_id UUID REFERENCES funcionarios(id),
+  -- Ao apagar um cliente ou uma funcionária, as marcações antigas ficam (para as
+  -- estatísticas) sem essa ligação. A app só deixa apagar quem já não tem marcações
+  -- por acontecer.
+  cliente_id UUID REFERENCES clientes(id) ON DELETE SET NULL,
+  funcionario_id UUID REFERENCES funcionarios(id) ON DELETE SET NULL,
   servico_id UUID REFERENCES servicos(id),
   data_hora_inicio TIMESTAMPTZ NOT NULL,
   data_hora_fim TIMESTAMPTZ NOT NULL,

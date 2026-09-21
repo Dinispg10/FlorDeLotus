@@ -452,8 +452,6 @@ h3 {
 
 /* ---------------- Barras de mensagem ---------------- */
 
-.barra-erro,
-.barra-aviso,
 .barra-info {
   display: flex;
   align-items: center;
@@ -466,33 +464,13 @@ h3 {
   flex: 0 0 auto;
 }
 
-.barra-erro {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.barra-aviso {
-  background: var(--verde-claro);
-  color: var(--verde);
-}
-
 .barra-info {
   background: var(--roxo-claro);
   color: var(--roxo);
 }
 
-.barra-erro span,
 .barra-info span {
   flex: 1;
-}
-
-.barra-erro button {
-  border: none;
-  background: rgba(185, 28, 28, 0.12);
-  color: #991b1b;
-  border-radius: 8px;
-  padding: 0.3rem 0.65rem;
-  font-weight: 700;
 }
 
 .barra-info button {
@@ -1315,6 +1293,95 @@ button.cabecalho-coluna:hover {
   height: 100%;
   border-radius: 999px;
   background: var(--roxo-suave);
+}
+
+/* ---------------- Notificações ---------------- */
+
+/* Feedback das ações: flutua em baixo, ao centro, por cima de tudo. */
+.notificacoes {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  pointer-events: none;
+}
+
+.notificacao {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px 10px 10px;
+  border-radius: 12px;
+  background: #1f1537;
+  color: #fff;
+  box-shadow: 0 12px 32px rgba(30, 27, 75, 0.35);
+  font-size: 0.88rem;
+  font-weight: 600;
+  pointer-events: auto;
+  animation: notificacao-entrar 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+.notificacao-icone {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.notificacao.sucesso .notificacao-icone {
+  background: var(--verde-vivo);
+}
+
+.notificacao.erro {
+  background: #fff;
+  color: #7f1d1d;
+  border: 1px solid #fecaca;
+  max-width: 560px;
+}
+
+.notificacao.erro .notificacao-icone {
+  background: #dc2626;
+  color: #fff;
+}
+
+.notificacao-texto {
+  line-height: 1.35;
+}
+
+.notificacao button {
+  flex-shrink: 0;
+  border: none;
+  border-radius: 8px;
+  padding: 0.3rem 0.65rem;
+  font-weight: 700;
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.notificacao button[aria-label="Fechar"] {
+  background: transparent;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0.2rem 0.4rem;
+}
+
+@keyframes notificacao-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
 }
 
 /* ---------------- Formulários ---------------- */

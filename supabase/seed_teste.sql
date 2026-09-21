@@ -14,8 +14,8 @@ DELETE FROM agendamentos WHERE observacoes = 'Dados de teste';
 DELETE FROM clientes WHERE observacoes = 'Dados de teste';
 
 -- Funcionárias e serviços só entram se ainda não existirem com esse nome.
-INSERT INTO funcionarios (nome, cor, ativo)
-SELECT d.nome, d.cor, true
+INSERT INTO funcionarios (nome, cor)
+SELECT d.nome, d.cor
 FROM (VALUES
   ('Maria', '#7C3AED'),
   ('Sofia', '#10B981'),
@@ -41,18 +41,18 @@ FROM (VALUES
 ) AS d(nome, duracao, preco)
 WHERE NOT EXISTS (SELECT 1 FROM servicos s WHERE s.nome = d.nome);
 
-INSERT INTO clientes (nome, telefone, observacoes, ativo)
+INSERT INTO clientes (nome, telefone, observacoes)
 VALUES
-  ('Rita Costa',      '+351 912 345 678', 'Dados de teste', true),
-  ('Marta Silva',     '+351 913 222 333', 'Dados de teste', true),
-  ('Joana Pereira',   '+351 918 444 555', 'Dados de teste', true),
-  ('Clara Mendes',    '+351 916 676 787', 'Dados de teste', true),
-  ('Inês Rocha',      '+351 911 202 303', 'Dados de teste', true),
-  ('Sónia Martins',   '+351 914 505 606', 'Dados de teste', true),
-  ('Beatriz Nunes',   '+351 915 707 808', 'Dados de teste', true),
-  ('Helena Dias',     '+351 917 909 101', 'Dados de teste', true),
-  ('Patrícia Gomes',  '+351 919 111 222', 'Dados de teste', true),
-  ('Carolina Faria',  '+351 910 333 444', 'Dados de teste', true);
+  ('Rita Costa',      '+351 912 345 678', 'Dados de teste'),
+  ('Marta Silva',     '+351 913 222 333', 'Dados de teste'),
+  ('Joana Pereira',   '+351 918 444 555', 'Dados de teste'),
+  ('Clara Mendes',    '+351 916 676 787', 'Dados de teste'),
+  ('Inês Rocha',      '+351 911 202 303', 'Dados de teste'),
+  ('Sónia Martins',   '+351 914 505 606', 'Dados de teste'),
+  ('Beatriz Nunes',   '+351 915 707 808', 'Dados de teste'),
+  ('Helena Dias',     '+351 917 909 101', 'Dados de teste'),
+  ('Patrícia Gomes',  '+351 919 111 222', 'Dados de teste'),
+  ('Carolina Faria',  '+351 910 333 444', 'Dados de teste');
 
 -- dia: 0 = segunda desta semana, 1 = terça, ... 5 = sábado.
 -- As horas são hora local do salão e nenhuma funcionária fica com marcações sobrepostas.

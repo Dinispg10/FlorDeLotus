@@ -167,7 +167,7 @@ function App() {
   if (!session) return <Login />;
 
   // Sem funcionárias ou serviços ativos não há como preencher uma marcação.
-  const semFuncionarias = salao.funcionarios.filter((item) => item.ativo).length === 0;
+  const semFuncionarias = salao.funcionarios.length === 0;
   const semServicos = salao.servicos.filter((item) => item.ativo).length === 0;
   const faltaCatalogo = semFuncionarias || semServicos;
 
@@ -187,20 +187,6 @@ function App() {
       <TopNav separador={separador} onMudarSeparador={setSeparador} onSair={sair} />
 
       <main className={`conteudo ${separador === "agenda" ? "conteudo-agenda" : ""}`}>
-        {salao.erro ? (
-          <div className="barra-erro" role="alert">
-            <span>{salao.erro}</span>
-            <button type="button" onClick={() => salao.recarregarAgenda()}>
-              Tentar outra vez
-            </button>
-            <button type="button" onClick={() => salao.setErro("")} aria-label="Fechar aviso">
-              ×
-            </button>
-          </div>
-        ) : null}
-
-        {aviso ? <div className="barra-aviso">{aviso}</div> : null}
-
         {faltaCatalogo && !salao.aCarregar ? (
           <div className="barra-info">
             <span>{motivoBloqueio}</span>
@@ -282,10 +268,36 @@ function App() {
         />
       ) : null}
 
+      <div className="notificacoes">
+        {salao.erro ? (
+          <div className="notificacao erro" role="alert">
+            <span className="notificacao-icone" aria-hidden="true">!</span>
+            <span className="notificacao-texto">{salao.erro}</span>
+            {/* Só faz sentido repetir quando o que falhou foi carregar dados. */}
+            {/carregar|Sem ligação/.test(salao.erro) ? (
+              <button type="button" onClick={() => salao.recarregarAgenda()}>
+                Tentar outra vez
+              </button>
+            ) : null}
+            <button type="button" onClick={() => salao.setErro("")} aria-label="Fechar">
+              ×
+            </button>
+          </div>
+        ) : null}
+
+        {aviso ? (
+          <div className="notificacao sucesso" role="status" key={aviso}>
+            <span className="notificacao-icone" aria-hidden="true">✓</span>
+            <span className="notificacao-texto">{aviso}</span>
+          </div>
+        ) : null}
+      </div>
+
       {aCancelar ? (
         <ConfirmarModal
           titulo="Cancelar esta marcação?"
           textoConfirmar="Sim, cancelar"
+            textoAProcessar="A cancelar..."
           aProcessar={aCancelarProcessar}
           onConfirmar={confirmarCancelamento}
           onVoltar={() => setACancelar(null)}

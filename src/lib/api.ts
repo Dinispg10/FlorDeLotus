@@ -46,7 +46,6 @@ type RawFuncionario = {
   id: string;
   nome: string;
   cor: string | null;
-  ativo: boolean | null;
 };
 
 type RawServico = {
@@ -62,7 +61,6 @@ type RawCliente = {
   nome: string;
   telefone: string | null;
   observacoes: string | null;
-  ativo: boolean | null;
 };
 
 type RawAgendamento = {
@@ -84,7 +82,6 @@ const paraFuncionario = (item: RawFuncionario): Funcionario => ({
   id: item.id,
   nome: item.nome,
   cor: item.cor ?? "#8B5CF6",
-  ativo: item.ativo ?? true,
 });
 
 const paraServico = (item: RawServico): Servico => ({
@@ -100,7 +97,6 @@ const paraCliente = (item: RawCliente): Cliente => ({
   nome: item.nome,
   telefone: item.telefone ?? "",
   observacoes: item.observacoes ?? "",
-  ativo: item.ativo ?? true,
 });
 
 const paraAgendamento = (item: RawAgendamento): Agendamento => {
@@ -112,7 +108,7 @@ const paraAgendamento = (item: RawAgendamento): Agendamento => {
   return {
     id: item.id,
     clienteId: item.cliente_id,
-    cliente: item.clientes?.nome ?? "Cliente sem nome",
+    cliente: item.clientes?.nome ?? (item.cliente_id ? "Cliente sem nome" : "Cliente removido"),
     telefone: item.telefone_cliente ?? item.clientes?.telefone ?? "",
     funcionarioId: item.funcionario_id ?? "",
     servicoId: item.servico_id ?? "",
@@ -135,7 +131,7 @@ const paraAgendamento = (item: RawAgendamento): Agendamento => {
 export const listarFuncionarios = async (): Promise<Funcionario[]> => {
   const { data, error } = await client()
     .from("funcionarios")
-    .select("id, nome, cor, ativo")
+    .select("id, nome, cor")
     .order("criado_em", { ascending: true });
 
   falhar("Não foi possível carregar as funcionárias", error);
@@ -148,9 +144,8 @@ export const criarFuncionario = async (dados: Omit<Funcionario, "id">) => {
     .insert({
       nome: dados.nome,
       cor: dados.cor,
-      ativo: dados.ativo,
     })
-    .select("id, nome, cor, ativo")
+    .select("id, nome, cor")
     .single();
 
   falhar("Não foi possível criar a funcionária", error);
@@ -166,14 +161,46 @@ export const atualizarFuncionario = async (
     .update({
       ...(dados.nome !== undefined ? { nome: dados.nome } : {}),
       ...(dados.cor !== undefined ? { cor: dados.cor } : {}),
-      ...(dados.ativo !== undefined ? { ativo: dados.ativo } : {}),
     })
     .eq("id", id)
-    .select("id, nome, cor, ativo")
+    .select("id, nome, cor")
     .single();
 
   falhar("Não foi possível guardar a funcionária", error);
   return paraFuncionario(data as RawFuncionario);
+};
+
+/**
+ * Quantas marcações ainda por acontecer apontam para esta pessoa. Apagar a ficha de
+ * alguém que vem amanhã deixava a marcação sem cliente ou sem funcionária.
+ */
+const marcacoesFuturas = async (coluna: "cliente_id" | "funcionario_id", id: string) => {
+  const { count, error } = await client()
+    .from("agendamentos")
+    .select("id", { count: "exact", head: true })
+    .eq(coluna, id)
+    .gte("data_hora_fim", new Date().toISOString());
+
+  falhar("Não foi possível confirmar as marcações", error);
+  return count ?? 0;
+};
+
+const emTexto = (quantas: number) => (quantas === 1 ? "1 marcação" : `${quantas} marcações`);
+
+/**
+ * Apaga a funcionária. As marcações que já passaram ficam (para as estatísticas),
+ * sem funcionária; as folgas dela vão com ela.
+ */
+export const apagarFuncionario = async (funcionaria: Funcionario) => {
+  const futuras = await marcacoesFuturas("funcionario_id", funcionaria.id);
+  if (futuras > 0) {
+    throw new Error(
+      `${funcionaria.nome} ainda tem ${emTexto(futuras)} por acontecer. Passa-as para outra funcionária ou cancela-as antes de a apagar.`,
+    );
+  }
+
+  const { error } = await client().from("funcionarios").delete().eq("id", funcionaria.id);
+  falhar("Não foi possível apagar a funcionária", error);
 };
 
 /* ---------------------------------------------------------------- */
@@ -230,7 +257,7 @@ export const atualizarServico = async (id: string, dados: Partial<Omit<Servico, 
 export const listarClientes = async (): Promise<Cliente[]> => {
   const { data, error } = await client()
     .from("clientes")
-    .select("id, nome, telefone, observacoes, ativo")
+    .select("id, nome, telefone, observacoes")
     .order("nome", { ascending: true });
 
   falhar("Não foi possível carregar os clientes", error);
@@ -248,9 +275,8 @@ export const criarCliente = async (dados: {
       nome: dados.nome,
       telefone: dados.telefone || null,
       observacoes: dados.observacoes || null,
-      ativo: true,
     })
-    .select("id, nome, telefone, observacoes, ativo")
+    .select("id, nome, telefone, observacoes")
     .single();
 
   falhar("Não foi possível criar o cliente", error);
@@ -264,14 +290,29 @@ export const atualizarCliente = async (id: string, dados: Partial<Omit<Cliente, 
       ...(dados.nome !== undefined ? { nome: dados.nome } : {}),
       ...(dados.telefone !== undefined ? { telefone: dados.telefone || null } : {}),
       ...(dados.observacoes !== undefined ? { observacoes: dados.observacoes || null } : {}),
-      ...(dados.ativo !== undefined ? { ativo: dados.ativo } : {}),
     })
     .eq("id", id)
-    .select("id, nome, telefone, observacoes, ativo")
+    .select("id, nome, telefone, observacoes")
     .single();
 
   falhar("Não foi possível guardar o cliente", error);
   return paraCliente(data as RawCliente);
+};
+
+/**
+ * Apaga a ficha do cliente. As marcações que já passaram ficam (a faturação continua
+ * certa) e passam a aparecer como "Cliente removido".
+ */
+export const apagarCliente = async (cliente: Cliente) => {
+  const futuras = await marcacoesFuturas("cliente_id", cliente.id);
+  if (futuras > 0) {
+    throw new Error(
+      `${cliente.nome} ainda tem ${emTexto(futuras)} por acontecer. Cancela-as antes de apagar a ficha.`,
+    );
+  }
+
+  const { error } = await client().from("clientes").delete().eq("id", cliente.id);
+  falhar("Não foi possível apagar o cliente", error);
 };
 
 /* ---------------------------------------------------------------- */

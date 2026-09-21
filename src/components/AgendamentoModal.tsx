@@ -68,9 +68,7 @@ export default function AgendamentoModal({
   onApagado,
 }: Props) {
   const emEdicao = agendamento !== null;
-  const funcionariosAtivos = funcionarios.filter(
-    (item) => item.ativo || item.id === agendamento?.funcionarioId,
-  );
+  const funcionariosAtivos = funcionarios;
   const servicosAtivos = servicos.filter(
     (item) => item.ativo || item.id === agendamento?.servicoId,
   );
@@ -129,7 +127,6 @@ export default function AgendamentoModal({
 
     return clientes
       .filter((cliente) => {
-        if (!cliente.ativo) return false;
         const porNome = procura ? normalizarTexto(cliente.nome).includes(procura) : false;
         const porTelefone =
           digitos.length >= 6 ? normalizarTelefone(cliente.telefone).includes(digitos) : false;
@@ -628,6 +625,7 @@ export default function AgendamentoModal({
           <ConfirmarModal
             titulo="Cancelar esta marcação?"
             textoConfirmar="Sim, cancelar"
+            textoAProcessar="A cancelar..."
             aProcessar={aGuardar}
             onConfirmar={cancelar}
             onVoltar={() => setConfirmarCancelar(false)}

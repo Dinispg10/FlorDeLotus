@@ -123,7 +123,7 @@ export default function AgendaView({
   onAbrirExistente,
   onPedirCancelamento,
 }: Props) {
-  const ativas = funcionarios.filter((item) => item.ativo);
+  const ativas = funcionarios;
   const funcionaria = funcionarios.find((item) => item.id === funcionariaSelecionada) ?? null;
   const intervalo = useMemo(
     () => intervaloDaGrelha(configuracoes, agendamentosDaSemana),

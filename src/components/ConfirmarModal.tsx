@@ -5,6 +5,8 @@ type Props = {
   children?: ReactNode;
   textoConfirmar: string;
   textoVoltar?: string;
+  /** O que o botão diz enquanto a ação decorre: "A cancelar...", "A apagar...". */
+  textoAProcessar?: string;
   aProcessar?: boolean;
   onConfirmar: () => void;
   onVoltar: () => void;
@@ -19,6 +21,7 @@ export default function ConfirmarModal({
   children,
   textoConfirmar,
   textoVoltar = "Voltar",
+  textoAProcessar = "Um momento...",
   aProcessar = false,
   onConfirmar,
   onVoltar,
@@ -83,7 +86,7 @@ export default function ConfirmarModal({
             onClick={onConfirmar}
             disabled={aProcessar}
           >
-            {aProcessar ? "A cancelar..." : textoConfirmar}
+            {aProcessar ? textoAProcessar : textoConfirmar}
           </button>
         </div>
       </div>
