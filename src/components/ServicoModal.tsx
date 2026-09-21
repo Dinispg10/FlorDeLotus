@@ -65,7 +65,7 @@ export default function ServicoModal({ servico, onFechar, onGuardado }: Props) {
               setErro("");
             }}
             placeholder="Ex: Coloração"
-            autoFocus
+            autoFocus={servico === null}
           />
         </label>
 

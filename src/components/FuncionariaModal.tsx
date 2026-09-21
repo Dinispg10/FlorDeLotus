@@ -183,7 +183,7 @@ export default function FuncionariaModal({
               setErro("");
             }}
             placeholder="Ex: Maria"
-            autoFocus
+            autoFocus={funcionaria === null}
           />
         </label>
 

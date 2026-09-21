@@ -187,61 +187,65 @@ h3 {
   gap: 8px;
 }
 
+/* Um botão só para tudo o que tem a ver com atualizações. */
+.botao-atualizar {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: transparent;
+  color: #fff;
+  border-radius: 9px;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+
+.botao-atualizar:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.botao-atualizar:disabled {
+  cursor: default;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.botao-atualizar.ok {
+  border-color: rgba(167, 243, 208, 0.6);
+  color: #a7f3d0;
+}
+
+.botao-atualizar.novo {
+  border-color: transparent;
+  background: var(--verde-vivo);
+  font-weight: 700;
+  box-shadow: 0 0 0 2px rgba(167, 243, 208, 0.35);
+}
+
+.botao-atualizar.novo:hover {
+  background: var(--verde-vivo);
+  filter: brightness(1.1);
+}
+
+/* A própria moldura do botão enche à medida que descarrega. */
+.botao-atualizar.a-descarregar {
+  background: linear-gradient(
+    to right,
+    rgba(110, 231, 183, 0.45) var(--progresso, 0%),
+    transparent var(--progresso, 0%)
+  );
+  font-variant-numeric: tabular-nums;
+}
+
+.botao-atualizar.erro {
+  border-color: rgba(254, 202, 202, 0.6);
+  color: #fecaca;
+}
+
 .versao-app {
   font-size: 0.72rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.55);
   white-space: nowrap;
-}
-
-.atualizar-texto {
-  border: none;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.78rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.atualizar-texto.ok {
-  color: #a7f3d0;
-}
-
-.atualizar-texto.erro {
-  color: #fecaca;
-  cursor: pointer;
-}
-
-.atualizar-disponivel {
-  border: none;
-  border-radius: 9px;
-  padding: 0.35rem 0.8rem;
-  background: var(--verde-vivo);
-  color: #fff;
-  font-size: 0.8rem;
-  font-weight: 700;
-  white-space: nowrap;
-  box-shadow: 0 0 0 2px rgba(167, 243, 208, 0.35);
-}
-
-.atualizar-disponivel:hover {
-  filter: brightness(1.1);
-}
-
-.atualizar-progresso {
-  display: inline-block;
-  width: 70px;
-  height: 6px;
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.2);
-  overflow: hidden;
-}
-
-.atualizar-progresso span {
-  display: block;
-  height: 100%;
-  background: #6ee7b7;
-  transition: width 0.2s ease;
 }
 
 /* ---------------- Botões da janela ---------------- */

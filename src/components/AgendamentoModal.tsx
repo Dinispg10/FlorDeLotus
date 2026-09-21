@@ -108,9 +108,11 @@ export default function AgendamentoModal({
   const [confirmarCancelar, setConfirmarCancelar] = useState(false);
   const primeiroCampo = useRef<HTMLInputElement>(null);
 
+  // Numa marcação nova começa-se pelo nome; numa existente, o cursor não vai para lá
+  // (senão abria logo a lista de sugestões de clientes por cima do formulário).
   useEffect(() => {
-    primeiroCampo.current?.focus();
-  }, []);
+    if (!emEdicao) primeiroCampo.current?.focus();
+  }, [emEdicao]);
 
   useEffect(() => {
     const aoTeclar = (evento: KeyboardEvent) => {
@@ -403,7 +405,9 @@ export default function AgendamentoModal({
                     setMostrarSugestoes(true);
                     setErro("");
                   }}
-                  onFocus={() => setMostrarSugestoes(true)}
+                  onFocus={() => {
+                    if (clienteId === null) setMostrarSugestoes(true);
+                  }}
                   placeholder="Escreve o nome para procurar"
                   autoComplete="off"
                 />

@@ -157,7 +157,7 @@ export default function ClienteModal({
                 setErro("");
               }}
               placeholder="Ex: Ana Lopes"
-              autoFocus
+              autoFocus={cliente === null}
             />
           </label>
 

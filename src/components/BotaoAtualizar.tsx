@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { check, type Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { getVersion } from "@tauri-apps/api/app";
@@ -74,77 +74,58 @@ export default function BotaoAtualizar() {
     }
   };
 
-  const conteudo = () => {
-    if (estado.tipo === "a-verificar") {
-      return <span className="atualizar-texto">A procurar...</span>;
+  // Um botão só: o texto e o que ele faz mudam com o estado.
+  const botao = (() => {
+    switch (estado.tipo) {
+      case "a-verificar":
+        return { rotulo: "A procurar…", classe: "", acao: undefined };
+      case "em-dia":
+        return { rotulo: "Já está atualizada", classe: "ok", acao: undefined };
+      case "disponivel":
+        return {
+          rotulo: `Instalar v${estado.atualizacao.version}`,
+          classe: "novo",
+          acao: instalar,
+          dica: estado.atualizacao.body ?? undefined,
+        };
+      case "a-descarregar":
+        return {
+          rotulo: `A descarregar ${estado.percentagem}%`,
+          classe: "a-descarregar",
+          acao: undefined,
+          progresso: estado.percentagem,
+        };
+      case "instalada":
+        return { rotulo: "Reiniciar agora", classe: "novo", acao: () => relaunch() };
+      case "erro":
+        return {
+          rotulo: "Não foi possível atualizar",
+          classe: "erro",
+          acao: () => setEstado({ tipo: "parado" }),
+          dica: estado.mensagem,
+        };
+      default:
+        return { rotulo: "Atualizar", classe: "", acao: () => verificar(false) };
     }
-
-    if (estado.tipo === "em-dia") {
-      return <span className="atualizar-texto ok">✓ Versão mais recente</span>;
-    }
-
-    if (estado.tipo === "disponivel") {
-      return (
-        <button
-          type="button"
-          className="atualizar-disponivel"
-          onClick={instalar}
-          title={estado.atualizacao.body ?? undefined}
-        >
-          Instalar v{estado.atualizacao.version}
-        </button>
-      );
-    }
-
-    if (estado.tipo === "a-descarregar") {
-      return (
-        <span className="atualizar-progresso" title={`${estado.percentagem}%`}>
-          <span style={{ width: `${estado.percentagem}%` }} />
-        </span>
-      );
-    }
-
-    if (estado.tipo === "instalada") {
-      return (
-        <button type="button" className="atualizar-disponivel" onClick={() => relaunch()}>
-          Reiniciar agora
-        </button>
-      );
-    }
-
-    if (estado.tipo === "erro") {
-      return (
-        <button
-          type="button"
-          className="atualizar-texto erro"
-          onClick={() => setEstado({ tipo: "parado" })}
-          title={estado.mensagem}
-        >
-          ⚠ Não foi possível atualizar
-        </button>
-      );
-    }
-
-    return (
-      <button
-        type="button"
-        className="janela-botao"
-        onClick={() => verificar(false)}
-        aria-label="Procurar atualizações"
-        title="Procurar atualizações"
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
-          <path d="M21 3v5h-5" />
-        </svg>
-      </button>
-    );
-  };
+  })();
 
   return (
     <div className="atualizar">
       {versao ? <span className="versao-app">v{versao}</span> : null}
-      {conteudo()}
+      <button
+        type="button"
+        className={`botao-atualizar ${botao.classe}`}
+        onClick={botao.acao}
+        disabled={!botao.acao}
+        title={"dica" in botao ? botao.dica : undefined}
+        style={
+          "progresso" in botao
+            ? ({ "--progresso": `${botao.progresso}%` } as CSSProperties)
+            : undefined
+        }
+      >
+        {botao.rotulo}
+      </button>
     </div>
   );
 }
