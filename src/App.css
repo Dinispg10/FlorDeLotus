@@ -2927,3 +2927,14 @@ button.cabecalho-coluna:hover {
     flex-basis: 78px;
   }
 }
+
+/* ---------------- Conta ---------------- */
+
+.form-conta {
+  max-width: 420px;
+}
+
+.form-conta h3 {
+  margin: 8px 0 0;
+  font-size: 1rem;
+}

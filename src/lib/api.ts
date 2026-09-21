@@ -35,11 +35,33 @@ const falhar = (contexto: string, error: { message: string; code?: string } | nu
     );
   }
 
+  // 42501: as regras da base de dados não deixam (ex.: só a gerente muda serviços).
+  if (error.code === "42501") {
+    throw new Error("Só a gerente pode fazer isto.");
+  }
+
   if (error.message.toLowerCase().includes("failed to fetch")) {
     throw new Error("Sem ligação ao servidor. Verifica a internet e tenta outra vez.");
   }
 
   throw new Error(`${contexto}: ${error.message}`);
+};
+
+export type Papel = "gerente" | "funcionaria";
+
+/**
+ * O papel de quem entrou. Quem não tiver perfil conta como funcionária. Se a tabela
+ * perfis ainda não existir (migração 012 por correr), a base de dados ainda deixa
+ * tudo a todos, e a app mostra tudo como antes.
+ */
+export const carregarPapel = async (): Promise<Papel> => {
+  const { data, error } = await client().from("perfis").select("papel").maybeSingle();
+  if (error) {
+    const semTabela = error.code === "PGRST205" || error.code === "42P01";
+    if (!semTabela) console.error("Não foi possível ler o papel", error);
+    return semTabela ? "gerente" : "funcionaria";
+  }
+  return data?.papel === "gerente" ? "gerente" : "funcionaria";
 };
 
 type RawFuncionario = {

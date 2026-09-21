@@ -11,8 +11,15 @@ const SEPARADORES: { chave: Separador; rotulo: string }[] = [
   { chave: "definicoes", rotulo: "Definições" },
 ];
 
+/** Separadores que só a gerente vê (a base de dados também só a deixa a ela mexer). */
+const SO_GERENTE: Separador[] = ["estatisticas"];
+
+export const separadoresPara = (eGerente: boolean) =>
+  SEPARADORES.filter((item) => eGerente || !SO_GERENTE.includes(item.chave));
+
 type Props = {
   separador: Separador;
+  eGerente: boolean;
   onMudarSeparador: (separador: Separador) => void;
   onSair: () => void;
 };
@@ -21,7 +28,7 @@ type Props = {
  * Esta barra faz as vezes da moldura da janela (que está desligada no
  * tauri.conf.json). As zonas sem botões arrastam a janela; duplo clique maximiza.
  */
-export default function TopNav({ separador, onMudarSeparador, onSair }: Props) {
+export default function TopNav({ separador, eGerente, onMudarSeparador, onSair }: Props) {
   return (
     <header className="topnav">
       <div className="marca" data-tauri-drag-region>
@@ -32,7 +39,7 @@ export default function TopNav({ separador, onMudarSeparador, onSair }: Props) {
       </div>
 
       <nav className="topnav-links">
-        {SEPARADORES.map((item) => (
+        {separadoresPara(eGerente).map((item) => (
           <button
             key={item.chave}
             type="button"
@@ -64,11 +71,16 @@ export default function TopNav({ separador, onMudarSeparador, onSair }: Props) {
  */
 export function NavegacaoFundo({
   separador,
+  eGerente,
   onMudarSeparador,
-}: Pick<Props, "separador" | "onMudarSeparador">) {
+}: Pick<Props, "separador" | "eGerente" | "onMudarSeparador">) {
+  const separadores = separadoresPara(eGerente);
   return (
-    <nav className="navegacao-fundo">
-      {SEPARADORES.map((item) => (
+    <nav
+      className="navegacao-fundo"
+      style={{ gridTemplateColumns: `repeat(${separadores.length}, 1fr)` }}
+    >
+      {separadores.map((item) => (
         <button
           key={item.chave}
           type="button"

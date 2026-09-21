@@ -109,6 +109,26 @@ atualizam, e é preciso reinstalar à mão em todos os computadores. Guarda os d
 ficheiros num sítio seguro fora deste computador (gestor de palavras-passe, por exemplo).
 A chave **nunca** vai para o repositório — está fora da pasta do projeto de propósito.
 
+## Contas e papéis
+
+Não há registo público: as contas criam-se no Supabase, em **Authentication → Users →
+Add user → Create new user**, com uma palavra-passe provisória e **Auto Confirm User**
+marcado. A pessoa entra e muda-a em **Definições → Conta**. Quem se esquecer da
+palavra-passe: apaga-se a conta e cria-se outra com o mesmo email (os dados do salão não
+estão ligados às contas).
+
+Cada conta tem um papel, na tabela **perfis** (Table Editor → perfis → coluna `papel`):
+
+| | Gerente | Funcionária |
+|---|---|---|
+| Agenda, marcações, clientes, lembretes | ✓ | ✓ |
+| Estatísticas | ✓ | — |
+| Serviços, funcionárias, folgas/férias, horário | ✓ | só vê |
+
+As contas novas nascem funcionária. As regras estão na base de dados
+(`migrations/012_papeis.sql`), não só na app: mesmo por fora da app, uma funcionária
+não consegue mudar o que é da gerente, nem promover-se.
+
 ## Cópias de segurança
 
 Todas as noites o GitHub (workflow **Cópia de segurança**) copia a base de dados inteira,

@@ -4,8 +4,8 @@
 -- clientes, funcionárias, serviços, folgas, configurações e registos de SMS.
 -- Só deve ser corrido quando se quer mesmo recomeçar do zero.
 --
--- O que NÃO é apagado: as contas de acesso (Authentication → Users). Essas ficam,
--- e continuas a entrar na app com a mesma palavra-passe.
+-- O que NÃO é apagado: as contas de acesso (Authentication → Users) e os papéis
+-- (tabela perfis). Continuas a entrar com a mesma palavra-passe e a ser gerente.
 --
 -- A seguir a este ficheiro, corre o schema.sql.
 

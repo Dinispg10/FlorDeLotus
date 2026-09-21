@@ -181,7 +181,6 @@ export default function ClienteModal({
             rows={2}
             value={observacoes}
             onChange={(evento) => setObservacoes(evento.target.value)}
-            placeholder="Ex: prefere ao sábado de manhã, alergia a amoníaco"
           />
         </label>
 

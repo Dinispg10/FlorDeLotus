@@ -36,6 +36,9 @@ function App() {
   const [aCancelar, setACancelar] = useState<Agendamento | null>(null);
   const [aCancelarProcessar, setACancelarProcessar] = useState(false);
 
+  const [papel, setPapel] = useState<api.Papel>("funcionaria");
+  const eGerente = papel === "gerente";
+
   const salao = useSalao(Boolean(session), dia);
   const telemovel = useEcraPequeno();
 
@@ -56,6 +59,27 @@ function App() {
 
     return () => listener.subscription.unsubscribe();
   }, []);
+
+  // O papel de quem entrou decide o que se vê (a base de dados aplica as mesmas regras).
+  const idDaConta = session?.user.id;
+  useEffect(() => {
+    if (!idDaConta) {
+      setPapel("funcionaria");
+      return;
+    }
+    let ativo = true;
+    api.carregarPapel().then((lido) => {
+      if (ativo) setPapel(lido);
+    });
+    return () => {
+      ativo = false;
+    };
+  }, [idDaConta]);
+
+  // Uma funcionária não fica parada num separador que não é para ela.
+  useEffect(() => {
+    if (!eGerente && separador === "estatisticas") setSeparador("agenda");
+  }, [eGerente, separador]);
 
   useEffect(() => {
     if (!aviso) return;
@@ -188,15 +212,22 @@ function App() {
 
   return (
     <div className="app-layout">
-      <TopNav separador={separador} onMudarSeparador={setSeparador} onSair={sair} />
+      <TopNav
+        separador={separador}
+        eGerente={eGerente}
+        onMudarSeparador={setSeparador}
+        onSair={sair}
+      />
 
       <main className={`conteudo ${separador === "agenda" ? "conteudo-agenda" : ""}`}>
         {faltaCatalogo && !salao.aCarregar ? (
           <div className="barra-info">
-            <span>{motivoBloqueio}</span>
-            <button type="button" onClick={irParaCatalogo}>
-              {semFuncionarias ? "Criar funcionárias" : "Criar serviços"}
-            </button>
+            <span>{eGerente ? motivoBloqueio : "Ainda não há funcionárias ou serviços. Pede à gerência para os criar."}</span>
+            {eGerente ? (
+              <button type="button" onClick={irParaCatalogo}>
+                {semFuncionarias ? "Criar funcionárias" : "Criar serviços"}
+              </button>
+            ) : null}
           </div>
         ) : null}
 
@@ -246,7 +277,7 @@ function App() {
             onErro={salao.setErro}
             onAviso={setAviso}
           />
-        ) : separador === "estatisticas" ? (
+        ) : separador === "estatisticas" && eGerente ? (
           <EstatisticasView
             configuracoes={salao.configuracoes}
             funcionarios={salao.funcionarios}
@@ -277,12 +308,14 @@ function App() {
             onAusenciasAlteradas={salao.recarregarAgenda}
             onErro={salao.setErro}
             onAviso={setAviso}
+            email={session.user.email ?? ""}
+            eGerente={eGerente}
           />
         )}
       </main>
 
       {telemovel ? (
-        <NavegacaoFundo separador={separador} onMudarSeparador={setSeparador} />
+        <NavegacaoFundo separador={separador} eGerente={eGerente} onMudarSeparador={setSeparador} />
       ) : null}
 
       {modal ? (
