@@ -33,6 +33,11 @@ jobs:
             echo "::error::SUPABASE_DB_URL tem de começar por postgresql:// (a ligação 'Session pooler' do Supabase)."
             exit 1
           fi
+          # A ligação direta (db.xxx.supabase.co) só tem IPv6, que o GitHub não tem.
+          if [[ "$SUPABASE_DB_URL" != *pooler.supabase.com* ]]; then
+            echo "::error::SUPABASE_DB_URL tem de ser a ligação 'Session pooler' (termina em pooler.supabase.com), não a 'Direct connection'."
+            exit 1
+          fi
           if [[ "$SUPABASE_DB_URL" == *YOUR-PASSWORD* ]]; then
             echo "::error::Em SUPABASE_DB_URL falta trocar [YOUR-PASSWORD] pela palavra-passe da base de dados."
             exit 1
