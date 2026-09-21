@@ -29,6 +29,29 @@ jobs:
             exit 1
           fi
 
+      # Sem isto, faltando um segredo, saía uma app sem ligação ao Supabase — e o
+      # atualizador instalava-a sozinho em todos os computadores do salão.
+      - name: Confirmar que os segredos existem
+        shell: bash
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          FALTAM=""
+          for NOME in VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY TAURI_SIGNING_PRIVATE_KEY TAURI_SIGNING_PRIVATE_KEY_PASSWORD; do
+            if [ -z "${!NOME}" ]; then FALTAM="$FALTAM $NOME"; fi
+          done
+          if [ -n "$FALTAM" ]; then
+            echo "::error::Faltam segredos no GitHub:$FALTAM (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+          case "$VITE_SUPABASE_URL" in
+            https://*.supabase.co) ;;
+            *) echo "::error::VITE_SUPABASE_URL devia ser algo como https://xxxx.supabase.co — confirma que não copiaste o 'VITE_SUPABASE_URL=' junto."; exit 1 ;;
+          esac
+
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:

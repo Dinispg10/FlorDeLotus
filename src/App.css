@@ -181,6 +181,19 @@ h3 {
 
 /* ---------------- Atualizações ---------------- */
 
+.atualizar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.versao-app {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
+}
+
 .atualizar-texto {
   border: none;
   background: transparent;
