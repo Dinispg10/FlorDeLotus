@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as api from "../lib/api";
+import { supabase } from "../lib/supabase";
 import { inicioDaSemana, somarDias } from "../lib/datas";
 import {
   CONFIGURACOES_PADRAO,
@@ -64,6 +65,80 @@ export function useSalao(ativo: boolean, diaSelecionado: string) {
       setErro(mensagemDeErro(causa));
     }
   }, [ativo, segunda, domingo]);
+
+  // As subscrições abaixo vivem enquanto a sessão durar; estas referências dão-lhes
+  // sempre a versão atual das funções (que muda quando se muda de semana).
+  const recarregarAgendaAtual = useRef(carregarAgenda);
+  const recarregarBaseAtual = useRef(carregarBase);
+  useEffect(() => {
+    recarregarAgendaAtual.current = carregarAgenda;
+  }, [carregarAgenda]);
+  useEffect(() => {
+    recarregarBaseAtual.current = carregarBase;
+  }, [carregarBase]);
+
+  /**
+   * Tempo real: quando outro aparelho (o telemóvel de uma funcionária, o outro
+   * computador) muda alguma coisa, o Supabase avisa e esta app recarrega sozinha.
+   * Precisa das tabelas na publicação supabase_realtime (migração 010).
+   */
+  useEffect(() => {
+    if (!ativo || !supabase) return;
+    const ligacao = supabase;
+    const temporizadores: Record<"agenda" | "base", number | undefined> = {
+      agenda: undefined,
+      base: undefined,
+    };
+
+    // Uma visita com três serviços são três avisos seguidos: dá uma só recarga.
+    const agendar = (tipo: "agenda" | "base") => {
+      window.clearTimeout(temporizadores[tipo]);
+      temporizadores[tipo] = window.setTimeout(() => {
+        if (tipo === "agenda") recarregarAgendaAtual.current();
+        else recarregarBaseAtual.current();
+      }, 400);
+    };
+
+    const canal = ligacao
+      .channel("alteracoes-do-salao")
+      .on("postgres_changes", { event: "*", schema: "public", table: "agendamentos" }, () => agendar("agenda"))
+      .on("postgres_changes", { event: "*", schema: "public", table: "ausencias" }, () => agendar("agenda"))
+      .on("postgres_changes", { event: "*", schema: "public", table: "clientes" }, () => agendar("base"))
+      .on("postgres_changes", { event: "*", schema: "public", table: "funcionarios" }, () => agendar("base"))
+      .on("postgres_changes", { event: "*", schema: "public", table: "servicos" }, () => agendar("base"))
+      .on("postgres_changes", { event: "*", schema: "public", table: "configuracoes" }, () => agendar("base"))
+      .subscribe();
+
+    return () => {
+      window.clearTimeout(temporizadores.agenda);
+      window.clearTimeout(temporizadores.base);
+      ligacao.removeChannel(canal);
+    };
+  }, [ativo]);
+
+  /**
+   * Rede de segurança: ao voltar à app, recarrega. O telemóvel corta as ligações
+   * quando o ecrã apaga, e aí os avisos em tempo real perdem-se.
+   */
+  useEffect(() => {
+    if (!ativo) return;
+    let ultimaVez = Date.now();
+
+    const aoVoltar = () => {
+      if (document.visibilityState !== "visible") return;
+      if (Date.now() - ultimaVez < 15000) return;
+      ultimaVez = Date.now();
+      recarregarAgendaAtual.current();
+      recarregarBaseAtual.current();
+    };
+
+    window.addEventListener("focus", aoVoltar);
+    document.addEventListener("visibilitychange", aoVoltar);
+    return () => {
+      window.removeEventListener("focus", aoVoltar);
+      document.removeEventListener("visibilitychange", aoVoltar);
+    };
+  }, [ativo]);
 
   useEffect(() => {
     if (!ativo) return;

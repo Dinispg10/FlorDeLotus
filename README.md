@@ -41,6 +41,9 @@ Supabase, por isso vários computadores do salão veem a mesma agenda.
 - **Definições**: horário do salão dia a dia, funcionárias (nome, cor na agenda e folgas;
   apagam-se com a mesma regra dos clientes) e serviços (duração e preço), nas três
   sub-abas.
+- **Tempo real entre aparelhos**: o que se marca num telemóvel aparece logo no computador
+  e nos outros telemóveis (Supabase Realtime), e cada app recarrega também ao voltar a
+  ser aberta, caso a ligação tenha caído entretanto.
 - **Feedback das ações** ("Marcação guardada", erros) numa notificação que flutua em baixo,
   ao centro; os erros ficam até serem fechados.
 
@@ -132,4 +135,3 @@ scripts/      nova-versao.mjs (npm run versao)
 - Lembretes aos clientes. A página está escrita e posta de lado em
   `parked/mensagens/` — o LEIA-ME de lá explica como a voltar a ligar (WhatsApp, sem
   custos) e o que falta para o envio automático por SMS.
-- Atualização automática entre computadores (Supabase Realtime).

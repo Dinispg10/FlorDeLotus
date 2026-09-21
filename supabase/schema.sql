@@ -152,6 +152,32 @@ CREATE POLICY "authenticated_users_manage_logs_sms"
 ON logs_sms FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 /* ------------------------------------------------------------------ */
+/* Tempo real: avisar os outros aparelhos quando algo muda             */
+/* ------------------------------------------------------------------ */
+
+DO $tempo_real$
+DECLARE
+  tabela TEXT;
+BEGIN
+  -- No Supabase esta publicação já existe; num Postgres simples cria-se.
+  IF NOT EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
+    CREATE PUBLICATION supabase_realtime;
+  END IF;
+
+  FOREACH tabela IN ARRAY ARRAY[
+    'agendamentos', 'ausencias', 'clientes', 'funcionarios', 'servicos', 'configuracoes'
+  ] LOOP
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_publication_tables
+      WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = tabela
+    ) THEN
+      EXECUTE format('ALTER PUBLICATION supabase_realtime ADD TABLE public.%I', tabela);
+    END IF;
+  END LOOP;
+END;
+$tempo_real$;
+
+/* ------------------------------------------------------------------ */
 /* Configurações base do salão                                         */
 /* ------------------------------------------------------------------ */
 
