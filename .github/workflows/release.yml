@@ -1,0 +1,74 @@
+name: Release
+
+# Publica uma versão nova sempre que se envia uma tag vX.Y.Z para o GitHub.
+# As apps instaladas encontram-na pelo latest.json desta release, que só se consegue
+# descarregar sem login porque o repositório é público.
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    permissions:
+      contents: write
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Sem isto, uma tag v0.2.0 com o tauri.conf.json ainda em 0.1.0 publicava
+      # uma "0.2.0" que por dentro diz 0.1.0 — e nenhuma app se atualizava.
+      - name: Confirmar que a tag bate com a versão da app
+        shell: bash
+        run: |
+          VERSAO=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          if [ "v$VERSAO" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::A tag é $GITHUB_REF_NAME mas o tauri.conf.json diz $VERSAO. Corre 'npm run versao $VERSAO' (ou a versão certa) antes de criar a tag."
+            exit 1
+          fi
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Create .env.production
+        shell: bash
+        run: |
+          echo "VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}" > .env.production
+          echo "VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}" >> .env.production
+
+      - name: Build and release Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Flor de Lotus ${{ github.ref_name }}'
+          releaseBody: |
+            ## O que há de novo nesta versão?
+
+            Vê o histórico de commits para os detalhes.
+
+            ---
+            **Para atualizar**: na app, a versão nova aparece sozinha no canto de cima; carrega em "Instalar".
+          releaseDraft: false
+          prerelease: false

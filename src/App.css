@@ -1,0 +1,1967 @@
+:root {
+  font-family: Inter, "Segoe UI", sans-serif;
+  line-height: 1.5;
+  color: #1f2937;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --roxo: #4c1d95;
+  --roxo-vivo: #5b21b6;
+  --roxo-suave: #8b5cf6;
+  --roxo-claro: #f3f0ff;
+  --verde: #047857;
+  --verde-vivo: #059669;
+  --verde-claro: #ecfdf5;
+  --texto: #1f2937;
+  --texto-suave: #6b7280;
+  --linha: #eceaf4;
+  --fundo: #f7f6fb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--fundo);
+  color: var(--texto);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+h1,
+h2,
+h3 {
+  color: #111827;
+}
+
+/* ---------------- Login ---------------- */
+
+.login-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(140deg, #2e1065 0%, #4c1d95 45%, #047857 135%);
+}
+
+.login-card {
+  width: min(100%, 420px);
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 24px 50px rgba(30, 27, 75, 0.25);
+}
+
+.login-card h1 {
+  margin: 0 0 22px;
+  font-size: 2rem;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.login-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #4b5563;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.login-form input {
+  width: 100%;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  background: #fbfaff;
+  padding: 0.85rem 1rem;
+  color: var(--texto);
+}
+
+.login-note {
+  margin: 0;
+  color: #4b5563;
+}
+
+.login-error {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+/* ---------------- Estrutura ---------------- */
+
+.app-layout {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.conteudo {
+  flex: 1;
+  min-height: 0;
+  padding: 18px 22px 22px;
+  overflow-y: auto;
+}
+
+/* Na agenda o conteúdo não faz scroll: a grelha é que cresce até ao fundo. */
+.conteudo-agenda {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ---------------- Barra de topo ---------------- */
+
+.topnav {
+  flex: 0 0 auto;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 0 22px;
+  height: 58px;
+  background: linear-gradient(90deg, #2e1065 0%, #4c1d95 60%, #5b21b6 100%);
+  border-bottom: 3px solid var(--verde-vivo);
+  color: #fff;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.flor {
+  font-size: 1.2rem;
+  color: #a7f3d0;
+}
+
+.topnav-links {
+  display: flex;
+  gap: 4px;
+}
+
+/* Zona vazia que serve para arrastar a janela. */
+.zona-arrasto {
+  flex: 1;
+  align-self: stretch;
+  min-width: 20px;
+}
+
+/* ---------------- Atualizações ---------------- */
+
+.atualizar-texto {
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.atualizar-texto.ok {
+  color: #a7f3d0;
+}
+
+.atualizar-texto.erro {
+  color: #fecaca;
+  cursor: pointer;
+}
+
+.atualizar-disponivel {
+  border: none;
+  border-radius: 9px;
+  padding: 0.35rem 0.8rem;
+  background: var(--verde-vivo);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 0 0 2px rgba(167, 243, 208, 0.35);
+}
+
+.atualizar-disponivel:hover {
+  filter: brightness(1.1);
+}
+
+.atualizar-progresso {
+  display: inline-block;
+  width: 70px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.atualizar-progresso span {
+  display: block;
+  height: 100%;
+  background: #6ee7b7;
+  transition: width 0.2s ease;
+}
+
+/* ---------------- Botões da janela ---------------- */
+
+.janela-botoes {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+}
+
+.janela-botao {
+  width: 30px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.13);
+  color: #fff;
+  transition: background 0.12s ease;
+}
+
+.janela-botao svg {
+  width: 13px;
+  height: 13px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.janela-botao:hover {
+  background: rgba(255, 255, 255, 0.26);
+}
+
+.janela-botao.fechar:hover {
+  background: #dc2626;
+}
+
+.topnav-links button {
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 9px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.topnav-links button:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.topnav-links button.ativo {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.botao-sair {
+  margin-left: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: transparent;
+  color: #fff;
+  border-radius: 9px;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.botao-sair:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* ---------------- Botões ---------------- */
+
+.primary-button,
+.ghost-button,
+.danger-button {
+  border: none;
+  border-radius: 10px;
+  padding: 0.6rem 1.05rem;
+  font-weight: 700;
+  font-size: 0.88rem;
+  transition: filter 0.15s ease, background 0.15s ease;
+}
+
+.primary-button {
+  background: var(--verde-vivo);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(4, 120, 87, 0.25);
+}
+
+.primary-button:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.ghost-button {
+  background: var(--roxo-claro);
+  color: var(--roxo);
+}
+
+.ghost-button:hover:not(:disabled) {
+  background: #ede9fe;
+}
+
+.danger-button {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.primary-button:disabled,
+.ghost-button:disabled,
+.danger-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.icon-button {
+  border: none;
+  background: transparent;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--texto-suave);
+  padding: 2px 10px;
+  border-radius: 8px;
+}
+
+.icon-button:hover {
+  background: #f3f4f6;
+}
+
+.wide-button {
+  width: 100%;
+}
+
+/* − ⇕ + : espaço por hora na grelha. */
+.zoom-agenda {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--roxo-claro);
+  flex-shrink: 0;
+}
+
+.zoom-agenda span {
+  font-size: 0.8rem;
+  color: var(--roxo-suave);
+  padding: 0 2px;
+}
+
+.zoom-agenda button {
+  border: none;
+  background: transparent;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--roxo);
+}
+
+.zoom-agenda button:hover:not(:disabled) {
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(76, 29, 149, 0.18);
+}
+
+.zoom-agenda button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.alternador {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--roxo-claro);
+  flex-shrink: 0;
+}
+
+.alternador button {
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  padding: 0.35rem 0.8rem;
+  font-weight: 600;
+  font-size: 0.83rem;
+  color: var(--roxo);
+}
+
+.alternador button.ativo {
+  background: #fff;
+  color: var(--roxo);
+  box-shadow: 0 1px 3px rgba(76, 29, 149, 0.18);
+}
+
+/* ---------------- Barras de mensagem ---------------- */
+
+.barra-erro,
+.barra-aviso,
+.barra-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  flex: 0 0 auto;
+}
+
+.barra-erro {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.barra-aviso {
+  background: var(--verde-claro);
+  color: var(--verde);
+}
+
+.barra-info {
+  background: var(--roxo-claro);
+  color: var(--roxo);
+}
+
+.barra-erro span,
+.barra-info span {
+  flex: 1;
+}
+
+.barra-erro button {
+  border: none;
+  background: rgba(185, 28, 28, 0.12);
+  color: #991b1b;
+  border-radius: 8px;
+  padding: 0.3rem 0.65rem;
+  font-weight: 700;
+}
+
+.barra-info button {
+  border: none;
+  background: #fff;
+  color: var(--roxo);
+  border-radius: 8px;
+  padding: 0.3rem 0.65rem;
+  font-weight: 700;
+}
+
+.estado-vazio {
+  padding: 40px;
+  text-align: center;
+  color: var(--texto-suave);
+  background: #fff;
+  border: 1px solid var(--linha);
+  border-radius: 14px;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: var(--roxo-vivo);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.subtitulo {
+  margin: 4px 0 0;
+  color: var(--texto-suave);
+  font-size: 0.82rem;
+}
+
+/* ---------------- Agenda ---------------- */
+
+.agenda {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.seta {
+  border: 1px solid var(--linha);
+  background: #fff;
+  color: var(--roxo);
+  border-radius: 8px;
+  width: 30px;
+  height: 22px;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.seta:hover {
+  background: var(--roxo-claro);
+}
+
+.linha-filtros {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  flex: 0 0 auto;
+}
+
+.linha-filtros h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--linha);
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+}
+
+.chip:hover {
+  border-color: var(--roxo-suave);
+  color: var(--roxo);
+}
+
+.chip.ativo {
+  background: var(--roxo-vivo);
+  border-color: var(--roxo-vivo);
+  color: #fff;
+}
+
+.acoes-agenda {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ponto-cor {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* ---------------- Grelha ---------------- */
+
+.grelha {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid var(--linha);
+  border-radius: 14px;
+}
+
+.coluna-horas {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  flex: 0 0 58px;
+  background: #fff;
+  border-right: 1px solid var(--linha);
+}
+
+.marca-hora {
+  position: relative;
+  border-top: 1px solid var(--linha);
+}
+
+.marca-hora span {
+  position: absolute;
+  top: -8px;
+  right: 8px;
+  font-size: 0.7rem;
+  color: var(--texto-suave);
+  font-weight: 600;
+  background: #fff;
+  padding: 0 2px;
+}
+
+.coluna-funcionaria {
+  flex: 1 1 0;
+  min-width: 148px;
+  border-left: 1px solid var(--linha);
+}
+
+/* A primeira coluna encosta à régua das horas, que já tem a sua própria linha. */
+.coluna-horas + .coluna-funcionaria {
+  border-left: none;
+}
+
+.cabecalho-coluna {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 54px;
+  background: #fff;
+  border-bottom: 1px solid var(--linha);
+  padding: 8px 10px 0;
+  text-align: center;
+}
+
+.coluna-horas .cabecalho-coluna {
+  z-index: 4;
+}
+
+/* ‹ data › numa peça só, entre as funcionárias e o Dia/Semana. */
+.navegador-data {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.navegador-data .seta {
+  border: none;
+  height: 26px;
+}
+
+.rotulo-periodo {
+  border: none;
+  background: transparent;
+  padding: 2px 8px;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--roxo);
+  white-space: nowrap;
+}
+
+.rotulo-periodo:hover {
+  background: var(--roxo-claro);
+  text-decoration: underline;
+}
+
+/* Fica invisível mas presente: é a ele que o calendário do sistema se encosta. */
+.seletor-data {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Na vista semanal, o cabeçalho do dia abre esse dia. */
+button.cabecalho-coluna {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid var(--linha);
+  font: inherit;
+  display: block;
+}
+
+button.cabecalho-coluna:hover {
+  background: var(--roxo-claro);
+}
+
+.risco-cor {
+  display: block;
+  width: 26px;
+  height: 3px;
+  border-radius: 2px;
+  margin: 0 auto 5px;
+}
+
+.cabecalho-coluna h3 {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.1;
+}
+
+.cabecalho-coluna p {
+  margin: 1px 0 0;
+  font-size: 0.68rem;
+  color: var(--texto-suave);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coluna-hoje .cabecalho-coluna {
+  background: var(--verde-claro);
+  box-shadow: inset 0 -2px 0 var(--verde-vivo);
+}
+
+.coluna-hoje .cabecalho-coluna h3 {
+  color: var(--verde);
+}
+
+.pista {
+  position: relative;
+  cursor: copy;
+}
+
+.linha-hora {
+  border-top: 1px solid var(--linha);
+}
+
+.linha-hora:first-child {
+  border-top: none;
+}
+
+/* ---------------- Semana de todas: lista por dia ---------------- */
+
+.grelha-lista {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  background: #fff;
+  border: 1px solid var(--linha);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.coluna-dia {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-left: 1px solid var(--linha);
+}
+
+.coluna-dia:first-child {
+  border-left: none;
+}
+
+.lista-dia {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.linha-marcacao {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  border: 1px solid var(--linha);
+  border-left: 3px solid var(--roxo-vivo);
+  border-radius: 8px;
+  background: #fff;
+  padding: 5px 7px;
+  text-align: left;
+  min-width: 0;
+}
+
+.linha-marcacao:hover {
+  background: var(--roxo-claro);
+}
+
+.linha-hora-texto {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--texto-suave);
+  flex-shrink: 0;
+}
+
+.linha-cliente {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.linha-marcacao.estado-pendente {
+  border-style: dashed;
+  border-left-style: solid;
+}
+
+.dia-fechado-nota,
+.dia-sem-nada,
+.nota-folga {
+  margin: 4px 0;
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--texto-suave);
+}
+
+.dia-fechado-nota {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.nota-folga {
+  background: var(--roxo-claro);
+  color: var(--roxo);
+  border-radius: 6px;
+  padding: 3px 6px;
+  font-weight: 600;
+}
+
+.nota-folga.ferias {
+  background: var(--verde-claro);
+  color: var(--verde);
+}
+
+/* ---------------- Blocos ---------------- */
+
+.bloco {
+  /* A posição horizontal vem do componente: marcações sobrepostas ficam lado a lado. */
+  position: absolute;
+  /* Acima das faixas de fechado e de folga (z-index 1), senão ficavam tapadas. */
+  z-index: 2;
+  border-radius: 8px;
+  padding: 4px 7px;
+  overflow: hidden;
+  cursor: pointer;
+  border-left: 3px solid var(--roxo-vivo);
+  background: var(--roxo-claro);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  transition: box-shadow 0.15s ease;
+}
+
+.bloco:hover {
+  box-shadow: 0 4px 12px rgba(76, 29, 149, 0.18);
+}
+
+.bloco strong {
+  font-size: 0.8rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #1f2937;
+  min-width: 0;
+}
+
+/* Marcações curtas (30 min ou menos) não têm altura para duas linhas:
+   hora e nome passam a partilhar a mesma. */
+.bloco.compacto {
+  padding: 0 6px;
+  justify-content: center;
+}
+
+.bloco.compacto .bloco-topo {
+  gap: 6px;
+}
+
+.bloco.compacto strong {
+  flex: 1;
+  font-size: 0.75rem;
+}
+
+.bloco.compacto .bloco-hora {
+  flex-shrink: 0;
+}
+
+.bloco.compacto .bloco-acoes {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding-left: 6px;
+  background: inherit;
+}
+
+.bloco-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.bloco-hora {
+  white-space: nowrap;
+  font-size: 0.66rem;
+  /* Herda a cor da funcionária quando o bloco a define. */
+  color: var(--cor-funcionaria, var(--roxo));
+  font-weight: 700;
+  filter: brightness(0.75);
+}
+
+.bloco-servico {
+  font-size: 0.7rem;
+  color: var(--texto-suave);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bloco-acoes {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.bloco:hover .bloco-acoes {
+  opacity: 1;
+}
+
+.bloco-acoes button {
+  border: none;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--texto);
+  border-radius: 5px;
+  width: 19px;
+  height: 17px;
+  font-size: 0.64rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.bloco-acoes button:hover {
+  background: #fff;
+}
+
+.estado-pendente {
+  background: #fff;
+  border: 1px dashed var(--roxo-suave);
+  border-left-width: 3px;
+  border-left-style: solid;
+}
+
+/* ---------------- Estatísticas ---------------- */
+
+.estatisticas {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  gap: 14px;
+}
+
+.stat-card {
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid var(--linha);
+}
+
+.stat-card span {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--texto-suave);
+  margin-bottom: 6px;
+}
+
+.stat-card strong {
+  font-size: 1.7rem;
+  color: var(--roxo);
+}
+
+.stat-card.verde strong {
+  color: var(--verde);
+}
+
+.lista-barras {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.barra-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+.barra-topo strong {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.92rem;
+}
+
+.barra-topo span {
+  font-size: 0.78rem;
+  color: var(--texto-suave);
+}
+
+.barra {
+  height: 7px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  overflow: hidden;
+}
+
+.barra-preenchida {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.barra-legenda {
+  font-size: 0.72rem;
+  color: var(--texto-suave);
+}
+
+.detalhe-estados {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--linha);
+  margin-top: 14px;
+  padding-top: 12px;
+}
+
+.detalhe-estados span {
+  font-size: 0.78rem;
+  color: var(--texto-suave);
+}
+
+.detalhe-estados strong {
+  color: var(--roxo);
+  margin-left: 4px;
+}
+
+/* ---------------- Formulários ---------------- */
+
+.booking-form {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.booking-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.77rem;
+  color: #4b5563;
+  font-weight: 600;
+}
+
+.booking-form input,
+.booking-form select,
+.booking-form textarea,
+.campo-procura {
+  width: 100%;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  background: #fbfaff;
+  padding: 0.65rem 0.8rem;
+  color: var(--texto);
+  font-weight: 500;
+}
+
+.booking-form input:focus,
+.booking-form select:focus,
+.booking-form textarea:focus,
+.campo-procura:focus {
+  outline: 2px solid rgba(124, 58, 237, 0.3);
+  outline-offset: 1px;
+  border-color: var(--roxo-suave);
+}
+
+.booking-form textarea {
+  resize: vertical;
+}
+
+.booking-form input[readonly] {
+  background: #f3f4f6;
+  color: var(--texto-suave);
+}
+
+.inline-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.booking-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: var(--verde-claro);
+  border-radius: 10px;
+  padding: 10px 13px;
+  color: #065f46;
+}
+
+.booking-preview span {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.75;
+}
+
+.dica {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--texto-suave);
+}
+
+.dica.sucesso {
+  color: var(--verde);
+  font-weight: 600;
+}
+
+.aviso-conflito {
+  margin: 0;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* ---------------- Serviços de uma visita ---------------- */
+
+.lista-servicos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid var(--linha);
+  border-radius: 12px;
+  padding: 12px;
+  background: #fbfaff;
+}
+
+.linha-servico {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.linha-servico + .linha-servico {
+  border-top: 1px solid var(--linha);
+  padding-top: 10px;
+}
+
+.campos-servico {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 72px auto auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.campos-servico label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.72rem;
+  color: #4b5563;
+  font-weight: 600;
+  min-width: 0;
+}
+
+.campos-servico select,
+.campos-servico input {
+  width: 100%;
+  border: 1px solid var(--linha);
+  border-radius: 9px;
+  background: #fff;
+  padding: 0.5rem 0.6rem;
+  font-weight: 500;
+}
+
+.horas-servico {
+  padding-bottom: 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--roxo);
+  white-space: nowrap;
+}
+
+.linha-paralelo {
+  font-size: 0.74rem;
+}
+
+/* ---------------- Modal ---------------- */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(30, 27, 75, 0.45);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 16px;
+  overflow-y: auto;
+  z-index: 50;
+}
+
+.modal-card {
+  width: min(100%, 500px);
+  background: #fff;
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 24px 50px rgba(30, 27, 75, 0.3);
+}
+
+.modal-larga {
+  width: min(100%, 640px);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.modal-actions-direita {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.campo-cliente {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sugestoes {
+  list-style: none;
+  margin: 0;
+  padding: 5px;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid var(--linha);
+  border-radius: 12px;
+  box-shadow: 0 14px 28px rgba(30, 27, 75, 0.14);
+  z-index: 5;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.sugestoes button {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 7px 9px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.sugestoes button:hover {
+  background: var(--roxo-claro);
+}
+
+.sugestoes span {
+  font-size: 0.75rem;
+  color: var(--texto-suave);
+}
+
+/* ---------------- Clientes e catálogo ---------------- */
+
+/* Sub-abas das Definições: horário, funcionárias e serviços. */
+.sub-abas {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 14px;
+  padding: 4px;
+  background: #fff;
+  border: 1px solid var(--linha);
+  border-radius: 12px;
+  width: fit-content;
+}
+
+.sub-abas button {
+  border: none;
+  background: transparent;
+  border-radius: 9px;
+  padding: 0.5rem 1.1rem;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--texto-suave);
+}
+
+.sub-abas button:hover {
+  background: var(--roxo-claro);
+  color: var(--roxo);
+}
+
+.sub-abas button.ativo {
+  background: var(--roxo-vivo);
+  color: #fff;
+}
+
+/* ---------------- Ficha do cliente ---------------- */
+
+.resumo-cliente {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.resumo-cliente > div {
+  background: var(--roxo-claro);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.resumo-cliente span {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--texto-suave);
+  margin-bottom: 2px;
+}
+
+.resumo-cliente strong {
+  font-size: 1.1rem;
+  color: var(--roxo);
+}
+
+.historico {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.historico button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--linha);
+  background: #fff;
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+
+.historico button:hover {
+  border-color: var(--roxo-suave);
+  background: var(--roxo-claro);
+}
+
+.historico-data {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 96px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.historico-data em {
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--texto-suave);
+}
+
+.historico-servico {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.historico-servico strong {
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historico-servico em {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-style: normal;
+  font-size: 0.75rem;
+  color: var(--texto-suave);
+}
+
+.estado-etiqueta {
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--roxo-claro);
+  color: var(--roxo);
+}
+
+.estado-etiqueta.pendente {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* Páginas de lista: ocupam a largura toda do conteúdo. */
+.pagina-lista .cartao {
+  min-height: calc(100vh - 140px);
+}
+
+.lista-registos.ampla {
+  max-height: none;
+  gap: 8px;
+}
+
+.lista-registos.ampla li {
+  padding: 12px 16px;
+}
+
+.painel-duplo {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.cartao {
+  background: #fff;
+  border: 1px solid var(--linha);
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.cartao h2 {
+  margin: 0 0 12px;
+  font-size: 1.2rem;
+}
+
+.cartao h3 {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+.cartao-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.cartao-topo .acoes-registo {
+  align-items: center;
+}
+
+.cartao-topo h2 {
+  margin: 0;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.77rem;
+  color: var(--texto-suave);
+  font-weight: 600;
+}
+
+.campo-procura {
+  margin-bottom: 12px;
+}
+
+.lista-registos {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.lista-registos li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  padding: 9px 12px;
+}
+
+.lista-registos li.inativo {
+  opacity: 0.5;
+}
+
+.lista-registos li > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.lista-registos strong {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.92rem;
+}
+
+.lista-registos span,
+.lista-registos em {
+  font-size: 0.76rem;
+  color: var(--texto-suave);
+}
+
+.lista-registos em {
+  font-style: italic;
+}
+
+.badge {
+  flex-shrink: 0;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--roxo-claro);
+  color: var(--roxo);
+}
+
+.contagem {
+  font-size: 0.71rem !important;
+  color: var(--verde) !important;
+  font-weight: 600;
+}
+
+.acoes-registo {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.formulario-compacto {
+  border-top: 1px solid var(--linha);
+  padding-top: 14px;
+}
+
+.escolha-cor {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.escolha-cor > span {
+  font-size: 0.77rem;
+  color: #4b5563;
+  font-weight: 600;
+}
+
+.escolha-cor > div {
+  display: flex;
+  gap: 8px;
+}
+
+.amostra-cor {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+}
+
+.amostra-cor.ativa {
+  border-color: var(--roxo);
+  transform: scale(1.1);
+}
+
+/* ---------------- Folgas e férias ---------------- */
+
+.seccao-folgas {
+  margin-top: 20px;
+  border-top: 1px solid var(--linha);
+  padding-top: 16px;
+}
+
+.seccao-folgas h3 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+}
+
+.etiqueta-ausencia {
+  display: inline-block;
+  padding: 1px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.etiqueta-ausencia.folga {
+  background: var(--roxo-claro);
+  color: var(--roxo);
+}
+
+.etiqueta-ausencia.ferias {
+  background: var(--verde-claro);
+  color: var(--verde);
+}
+
+.checkbox-campo {
+  gap: 8px !important;
+}
+
+.checkbox-campo > span {
+  font-size: 0.77rem;
+  color: #4b5563;
+  font-weight: 600;
+}
+
+/* Horas em que o salão está fechado: a grelha mostra-as, mas apagadas. */
+.faixa-fechado {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  cursor: not-allowed;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(107, 114, 128, 0.1) 0,
+    rgba(107, 114, 128, 0.1) 5px,
+    rgba(107, 114, 128, 0.03) 5px,
+    rgba(107, 114, 128, 0.03) 10px
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.faixa-fechado span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--texto-suave);
+}
+
+/* Faixa na grelha a tapar as horas em que a funcionária não está. */
+.faixa-ausencia {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  cursor: not-allowed;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 6px;
+  overflow: hidden;
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(124, 58, 237, 0.13) 0,
+    rgba(124, 58, 237, 0.13) 6px,
+    rgba(124, 58, 237, 0.04) 6px,
+    rgba(124, 58, 237, 0.04) 12px
+  );
+  border-top: 1px solid rgba(124, 58, 237, 0.3);
+  border-bottom: 1px solid rgba(124, 58, 237, 0.3);
+}
+
+.faixa-ausencia.ferias {
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(5, 150, 105, 0.14) 0,
+    rgba(5, 150, 105, 0.14) 6px,
+    rgba(5, 150, 105, 0.04) 6px,
+    rgba(5, 150, 105, 0.04) 12px
+  );
+  border-color: rgba(5, 150, 105, 0.35);
+}
+
+.faixa-ausencia span {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--roxo);
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 999px;
+  padding: 1px 8px;
+  white-space: nowrap;
+}
+
+.faixa-ausencia.ferias span {
+  color: var(--verde);
+}
+
+/* ---------------- Definições ---------------- */
+
+.linha-horario {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.linha-horario .checkbox {
+  font-size: 0.95rem;
+  color: var(--texto);
+}
+
+.horas-do-dia {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.horas-do-dia input {
+  border: 1px solid var(--linha);
+  border-radius: 8px;
+  background: #fbfaff;
+  padding: 0.4rem 0.6rem;
+  font-weight: 600;
+}
+
+.horas-do-dia span {
+  color: var(--texto-suave);
+  font-size: 0.82rem;
+}
+
+.dia-fechado {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ---------------- Confirmação de ações sem volta ---------------- */
+
+.confirmar-fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(30, 27, 75, 0.35);
+  backdrop-filter: blur(2px);
+  animation: confirmar-aparecer 0.14s ease-out;
+}
+
+.confirmar-caixa {
+  width: min(100%, 380px);
+  background: #fff;
+  border-radius: 18px;
+  padding: 26px 24px 20px;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(30, 27, 75, 0.35);
+  animation: confirmar-entrar 0.18s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+.confirmar-icone {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: #fee2e2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirmar-icone svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: #dc2626;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.confirmar-caixa h2 {
+  margin: 0 0 8px;
+  font-size: 1.15rem;
+}
+
+.confirmar-texto p {
+  margin: 0 0 8px;
+  font-size: 0.86rem;
+  color: var(--texto-suave);
+}
+
+.confirmar-texto strong {
+  color: var(--texto);
+}
+
+.confirmar-botoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.confirmar-botoes .ghost-button {
+  padding: 0.7rem 1rem;
+}
+
+.botao-perigo {
+  border: none;
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  font-weight: 700;
+  font-size: 0.88rem;
+  background: #dc2626;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+  transition: filter 0.15s ease;
+}
+
+.botao-perigo:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.botao-perigo:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@keyframes confirmar-aparecer {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes confirmar-entrar {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(6px);
+  }
+}
+
+/* ---------------- Responsivo ---------------- */
+
+@media (max-width: 1100px) {
+  .painel-duplo {
+    grid-template-columns: 1fr;
+  }
+
+  .resumo-cliente {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(140px, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .topnav {
+    gap: 14px;
+    padding: 0 12px;
+  }
+
+  .conteudo {
+    padding: 12px;
+  }
+
+  .linha-filtros {
+    align-items: flex-start;
+  }
+
+  .stats-grid,
+  .inline-fields {
+    grid-template-columns: 1fr;
+  }
+}
