@@ -1,4 +1,4 @@
-// Muda a versão da app nos três sítios onde ela vive, para ficarem sempre iguais.
+// Muda a versão da app nos quatro sítios onde ela vive, para ficarem sempre iguais.
 // Uso: npm run versao 0.2.0
 import { readFileSync, writeFileSync } from "node:fs";
 
@@ -28,7 +28,16 @@ const cargoNovo = cargo.replace(
 );
 writeFileSync("src-tauri/Cargo.toml", cargoNovo);
 
-console.log(`Versão ${anterior} → ${versao} (tauri.conf.json, package.json, Cargo.toml).`);
+// O Cargo.lock também guarda a versão do próprio pacote; se ficar para trás, a
+// próxima compilação altera-o e fica uma mudança solta por fazer commit.
+const nomePacote = cargo.match(/\[package\][\s\S]*?\nname\s*=\s*"([^"]+)"/)?.[1];
+if (nomePacote) {
+  const lock = readFileSync("src-tauri/Cargo.lock", "utf8");
+  const entrada = new RegExp(String.raw`(name = "${nomePacote}"\r?\nversion = ")[^"]+(")`);
+  writeFileSync("src-tauri/Cargo.lock", lock.replace(entrada, `$1${versao}$2`));
+}
+
+console.log(`Versão ${anterior} → ${versao} (tauri.conf.json, package.json, Cargo.toml, Cargo.lock).`);
 console.log("");
 console.log("Para publicar:");
 console.log(`  git commit -am "Versão ${versao}"`);
