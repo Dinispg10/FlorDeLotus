@@ -103,6 +103,34 @@ atualizam, e é preciso reinstalar à mão em todos os computadores. Guarda os d
 ficheiros num sítio seguro fora deste computador (gestor de palavras-passe, por exemplo).
 A chave **nunca** vai para o repositório — está fora da pasta do projeto de propósito.
 
+## Cópias de segurança
+
+Todas as noites o GitHub (workflow **Cópia de segurança**) copia a base de dados inteira,
+tranca o ficheiro com uma palavra-passe e guarda-o 7 dias nos artefactos da execução.
+A app do salão não tem nada disto: as cópias são só para quem gere o projeto.
+
+**Segredos no GitHub** (Settings → Secrets and variables → Actions):
+
+| Segredo | O quê |
+|---|---|
+| `SUPABASE_DB_URL` | Supabase → **Connect** → **Session pooler** → URI, com `[YOUR-PASSWORD]` trocado pela palavra-passe da base de dados |
+| `COPIA_PASSWORD` | Uma palavra-passe inventada, só para trancar as cópias |
+
+⚠️ Guarda a `COPIA_PASSWORD` num gestor de palavras-passe. Sem ela, as cópias não se abrem.
+
+**Abrir uma cópia:** GitHub → Actions → Cópia de segurança → a execução do dia →
+*Artifacts* → descarregar e descompactar o `.zip`. Depois, no Git Bash:
+
+```bash
+gpg --decrypt flordelotus-AAAA-MM-DD.sql.gz.gpg | gunzip > copia.sql
+```
+
+O `copia.sql` tem a estrutura e os dados de todas as tabelas, e dá para repor numa base
+de dados vazia. Tem dados de clientes em claro: apaga-o quando já não for preciso.
+
+O GitHub desliga os workflows agendados ao fim de 60 dias sem nenhum commit no
+repositório. Se isso acontecer, avisa por email; basta voltar a ligá-lo em Actions.
+
 ## Segurança — ler antes de usar com clientes reais
 
 A chave `anon` vai dentro da aplicação instalada, por isso as políticas RLS são a única

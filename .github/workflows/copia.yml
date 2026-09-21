@@ -1,0 +1,83 @@
+name: Cópia de segurança
+
+# Todas as noites copia a base de dados inteira (estrutura + dados do esquema public),
+# tranca o ficheiro com COPIA_PASSWORD e guarda-o nos artefactos desta execução
+# durante 7 dias. O repositório é público: sem a palavra-passe, o ficheiro não se lê.
+# Como abrir uma cópia: ver "Cópias de segurança" no README.
+on:
+  schedule:
+    - cron: '0 3 * * *' # 03:00 UTC (04:00 em Portugal no verão)
+  workflow_dispatch:
+
+jobs:
+  copia:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Confirmar que os segredos existem
+        shell: bash
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          COPIA_PASSWORD: ${{ secrets.COPIA_PASSWORD }}
+        run: |
+          FALTAM=""
+          [ -z "$SUPABASE_DB_URL" ] && FALTAM="$FALTAM SUPABASE_DB_URL"
+          [ -z "$COPIA_PASSWORD" ] && FALTAM="$FALTAM COPIA_PASSWORD"
+          if [ -n "$FALTAM" ]; then
+            echo "::error::Faltam segredos no GitHub:$FALTAM (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+          if [[ "$SUPABASE_DB_URL" != postgresql://* ]]; then
+            echo "::error::SUPABASE_DB_URL tem de começar por postgresql:// (a ligação 'Session pooler' do Supabase)."
+            exit 1
+          fi
+          if [[ "$SUPABASE_DB_URL" == *YOUR-PASSWORD* ]]; then
+            echo "::error::Em SUPABASE_DB_URL falta trocar [YOUR-PASSWORD] pela palavra-passe da base de dados."
+            exit 1
+          fi
+
+      # O pg_dump tem de ser da mesma versão do Postgres do Supabase (17) ou mais nova.
+      - name: Instalar o pg_dump 17
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSo /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+
+      - name: Copiar e trancar
+        shell: bash
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          COPIA_PASSWORD: ${{ secrets.COPIA_PASSWORD }}
+        run: |
+          set -euo pipefail
+          umask 077
+          NOME="flordelotus-$(date -u +%Y-%m-%d)"
+          echo "NOME=$NOME" >> "$GITHUB_ENV"
+          mkdir -p copia
+
+          # A cópia em claro só existe dentro desta máquina, e é apagada logo a seguir.
+          /usr/lib/postgresql/17/bin/pg_dump "$SUPABASE_DB_URL" \
+            --schema=public --no-owner --no-privileges --quote-all-identifiers \
+            --file="$RUNNER_TEMP/copia.sql"
+
+          # Sem as marcações lá dentro, algo correu mal: melhor falhar do que guardar lixo.
+          grep -q 'CREATE TABLE "public"."agendamentos"' "$RUNNER_TEMP/copia.sql"
+          echo "Tamanho da cópia: $(du -h "$RUNNER_TEMP/copia.sql" | cut -f1)"
+
+          gzip -9 "$RUNNER_TEMP/copia.sql"
+          printf '%s' "$COPIA_PASSWORD" | gpg --batch --yes --pinentry-mode loopback \
+            --passphrase-fd 0 --symmetric --cipher-algo AES256 \
+            --output "copia/$NOME.sql.gz.gpg" "$RUNNER_TEMP/copia.sql.gz"
+          rm -f "$RUNNER_TEMP/copia.sql.gz"
+
+      - name: Guardar (7 dias)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.NOME }}
+          path: copia/
+          retention-days: 7
+          if-no-files-found: error
