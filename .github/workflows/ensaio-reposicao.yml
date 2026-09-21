@@ -1,0 +1,132 @@
+name: Ensaio de reposição
+
+# Prova que as cópias de segurança servem: pega na última cópia, destranca-a e
+# carrega-a num projeto Supabase DE TESTE (vazio), comparando quantas linhas havia
+# com quantas ficaram. Nunca mostra dados, só contagens (o repositório é público).
+# Travas: recusa o projeto verdadeiro e recusa um projeto que já tenha tabelas.
+on:
+  workflow_dispatch:
+
+jobs:
+  ensaio:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read # para descarregar a cópia de outra execução
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Confirmar os segredos e as travas
+        shell: bash
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_TESTE_DB_URL: ${{ secrets.SUPABASE_TESTE_DB_URL }}
+          COPIA_PASSWORD: ${{ secrets.COPIA_PASSWORD }}
+        run: |
+          for NOME in SUPABASE_DB_URL SUPABASE_TESTE_DB_URL COPIA_PASSWORD; do
+            if [ -z "${!NOME}" ]; then
+              echo "::error::Falta o segredo $NOME no GitHub."
+              exit 1
+            fi
+          done
+          if [[ "$SUPABASE_TESTE_DB_URL" != postgresql://postgres.*pooler.supabase.com* ]]; then
+            echo "::error::SUPABASE_TESTE_DB_URL tem de ser a ligação 'Session pooler' do projeto de teste."
+            exit 1
+          fi
+          projeto() { local resto="${1#postgresql://postgres.}"; echo "${resto%%:*}"; }
+          if [ "$(projeto "$SUPABASE_DB_URL")" = "$(projeto "$SUPABASE_TESTE_DB_URL")" ]; then
+            echo "::error::SUPABASE_TESTE_DB_URL aponta para o projeto VERDADEIRO. O ensaio só se faz num projeto de teste."
+            exit 1
+          fi
+
+      - name: Instalar o psql 17
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSo /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+
+      - name: Descarregar e destrancar a última cópia
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COPIA_PASSWORD: ${{ secrets.COPIA_PASSWORD }}
+        run: |
+          set -euo pipefail
+          umask 077
+          EXECUCAO=$(gh run list --workflow copia.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+          if [ -z "$EXECUCAO" ]; then
+            echo "::error::Ainda não há nenhuma cópia de segurança bem-sucedida."
+            exit 1
+          fi
+          gh run download "$EXECUCAO" --dir "$RUNNER_TEMP/descarga"
+          FICHEIRO=$(find "$RUNNER_TEMP/descarga" -name '*.sql.gz.gpg' | head -1)
+          echo "Cópia usada: $(basename "$FICHEIRO")"
+          printf '%s' "$COPIA_PASSWORD" | gpg --batch --quiet --pinentry-mode loopback \
+            --passphrase-fd 0 --decrypt "$FICHEIRO" | gunzip > "$RUNNER_TEMP/copia.sql"
+
+      - name: Repor no projeto de teste
+        shell: bash
+        env:
+          DESTINO: ${{ secrets.SUPABASE_TESTE_DB_URL }}
+        run: |
+          set -euo pipefail
+          PSQL=/usr/lib/postgresql/17/bin/psql
+          COPIA="$RUNNER_TEMP/copia.sql"
+
+          # Trava: o destino tem de estar vazio.
+          TABELAS=$($PSQL "$DESTINO" -XAtq -c "SELECT count(*) FROM pg_tables WHERE schemaname = 'public'")
+          if [ "$TABELAS" != "0" ]; then
+            echo "::error::O projeto de teste já tem $TABELAS tabela(s). O ensaio só carrega num projeto vazio."
+            exit 1
+          fi
+
+          # Quantas linhas traz a cópia, tabela a tabela.
+          awk '/^COPY "public"\./ { split($2, p, "."); t = p[2]; gsub(/"/, "", t); n[t] = 0; dentro = 1; next }
+               dentro && /^\\\.$/ { dentro = 0; next }
+               dentro { n[t]++ }
+               END { for (t in n) print t, n[t] }' "$COPIA" | sort > "$RUNNER_TEMP/esperado.txt"
+
+          # A extensão não vai na cópia (pertence ao sistema); cria-se antes.
+          $PSQL "$DESTINO" -Xq -v ON_ERROR_STOP=1 -c "CREATE EXTENSION IF NOT EXISTS btree_gist"
+
+          # O esquema public já existe num projeto novo.
+          sed -i 's/^CREATE SCHEMA "public";$/CREATE SCHEMA IF NOT EXISTS "public";/' "$COPIA"
+
+          # Tudo ou nada; os erros saem sem valores (entre aspas ou parênteses), para
+          # não mostrar dados de clientes nos registos públicos.
+          if ! $PSQL "$DESTINO" -Xq -v ON_ERROR_STOP=1 -v VERBOSITY=terse --single-transaction \
+                -f "$COPIA" > /dev/null 2> "$RUNNER_TEMP/erros.txt"; then
+            echo "::error::A reposição falhou:"
+            sed -E 's/"[^"]*"/"…"/g; s/\([^)]*\)/(…)/g' "$RUNNER_TEMP/erros.txt" | head -5
+            exit 1
+          fi
+          rm -f "$COPIA"
+
+          # Voltar a ligar o tempo real (não vai na cópia; é o mesmo bloco do schema.sql).
+          awk '/^DO \$tempo_real\$/,/^\$tempo_real\$;/' supabase/schema.sql > "$RUNNER_TEMP/tempo_real.sql"
+          $PSQL "$DESTINO" -Xq -v ON_ERROR_STOP=1 -f "$RUNNER_TEMP/tempo_real.sql"
+
+          # Comparar.
+          FALHOU=0
+          echo "Tabela            Na cópia   Reposto"
+          while read -r TABELA ESPERADO; do
+            REPOSTO=$($PSQL "$DESTINO" -XAtq -c "SELECT count(*) FROM public.\"$TABELA\"")
+            MARCA="ok"; [ "$ESPERADO" != "$REPOSTO" ] && { MARCA="DIFERENTE"; FALHOU=1; }
+            printf '%-16s %9s %9s   %s\n' "$TABELA" "$ESPERADO" "$REPOSTO" "$MARCA"
+          done < "$RUNNER_TEMP/esperado.txt"
+
+          TEMPO_REAL=$($PSQL "$DESTINO" -XAtq -c "SELECT count(*) FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public'")
+          echo "Tabelas com tempo real: $TEMPO_REAL"
+          SEGURANCA=$($PSQL "$DESTINO" -XAtq -c "SELECT count(*) FROM pg_tables WHERE schemaname = 'public' AND NOT rowsecurity")
+          echo "Tabelas sem proteção (RLS): $SEGURANCA"
+          [ "$SEGURANCA" != "0" ] && FALHOU=1
+
+          if [ "$FALHOU" = "1" ]; then
+            echo "::error::O ensaio encontrou diferenças."
+            exit 1
+          fi
+          echo "Ensaio bem-sucedido: a cópia repõe-se por inteiro."
