@@ -233,11 +233,10 @@ function App() {
           />
         ) : separador === "estatisticas" ? (
           <EstatisticasView
-            dia={dia}
-            agendamentosDaSemana={salao.agendamentos}
+            configuracoes={salao.configuracoes}
             funcionarios={salao.funcionarios}
             servicos={salao.servicos}
-            configuracoes={salao.configuracoes}
+            onErro={salao.setErro}
           />
         ) : separador === "clientes" ? (
           <ClientesView
@@ -296,7 +295,7 @@ function App() {
             <br />
             {dataPorExtenso(aCancelar.data)} às {aCancelar.inicio}
           </p>
-          <p>A marcação sai da agenda e não pode ser recuperada.</p>
+          <p>A marcação será removida da agenda e não poderá ser recuperada.</p>
         </ConfirmarModal>
       ) : null}
     </div>

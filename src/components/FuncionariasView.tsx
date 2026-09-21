@@ -74,7 +74,7 @@ export default function FuncionariasView({
 
         {visiveis.length === 0 ? (
           <div className="estado-vazio">
-            Sem funcionárias. Cria as que trabalham no salão para a agenda ter colunas.
+            Ainda não há funcionárias. Adiciona a equipa para a agenda ganhar colunas.
           </div>
         ) : (
           <ul className="lista-registos ampla">
@@ -85,7 +85,7 @@ export default function FuncionariasView({
                     <span className="ponto-cor" style={{ background: funcionaria.cor }} />
                     {funcionaria.nome}
                   </strong>
-                  <span>{funcionaria.ativo ? "Na agenda" : "Fora da agenda"}</span>
+                  <span>{funcionaria.ativo ? "Ativa" : "Inativa"}</span>
                 </div>
                 <div className="acoes-registo">
                   <button

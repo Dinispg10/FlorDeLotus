@@ -87,7 +87,7 @@ export default function FuncionariaModal({
 
       onGuardado(guardada, funcionaria === null);
     } catch (causa) {
-      setErro(causa instanceof Error ? causa.message : "Não foi possível guardar.");
+      setErro(causa instanceof Error ? causa.message : "Não foi possível guardar a funcionária.");
       setAGuardar(false);
     }
   };
@@ -121,7 +121,7 @@ export default function FuncionariaModal({
           setAvisoMarcacoes(
             `${funcionaria.nome} tem ${afetadas.length} ${
               afetadas.length === 1 ? "marcação" : "marcações"
-            } nesse período. A folga não as apaga — carrega outra vez para criar na mesma e depois remarca-as.`,
+            } nesse período. A folga não as cancela: carrega outra vez para a criar mesmo assim e depois reagenda essas marcações.`,
           );
           setAGuardarAusencia(false);
           return;
@@ -360,7 +360,7 @@ export default function FuncionariaModal({
                   {aGuardarAusencia
                     ? "A guardar..."
                     : avisoMarcacoes
-                      ? "Criar na mesma"
+                      ? "Criar mesmo assim"
                       : "Marcar ausência"}
                 </button>
               </div>

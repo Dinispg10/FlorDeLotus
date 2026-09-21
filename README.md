@@ -13,8 +13,10 @@ Supabase, por isso vários computadores do salão veem a mesma agenda.
   filtram por funcionária: ao escolher uma, abre a **semana dela** (uma coluna por dia) a
   ocupar o ecrã todo. Clicar num espaço livre cria uma marcação já com o dia, a hora e a
   funcionária certos.
-- **Estatísticas** (dia ou semana): marcações, faturação prevista e já realizada (o que
-  já passou da hora), ocupação por funcionária e serviços mais pedidos.
+- **Estatísticas** por dia, semana ou mês, independentes da agenda: faturação, marcações,
+  valor médio e clientes atendidos, cada um comparado com o período anterior; gráfico da
+  faturação ao longo do período (com tabela dos valores); e, por funcionária e por serviço,
+  marcações e faturação. A ocupação de cada funcionária desconta as folgas e férias.
 - **Marcações**: criar, editar e cancelar. Uma marcação está confirmada ou pendente;
   cancelar tira-a da agenda (pede confirmação antes). O ✕ em cada bloco cancela sem
   abrir a marcação.
@@ -33,8 +35,8 @@ Supabase, por isso vários computadores do salão veem a mesma agenda.
   horas). Aparecem às riscas na agenda e a app recusa marcar em cima delas. Ao criar uma
   folga em cima de marcações existentes, avisa quantas são antes de deixar continuar.
 - **Clientes**: pesquisa por nome ou telefone, reutiliza a ficha existente em vez de
-  duplicar, e permite editar/desativar. A ficha mostra visitas, quanto já gastou, última
-  e próxima vinda, e o histórico completo de marcações — clicar numa abre-a na agenda.
+  duplicar, e permite editar/desativar. A ficha mostra as visitas, o total em serviços, a
+  última e a próxima visita, e o histórico de marcações — clicar numa abre-a na agenda.
 - **Definições**: horário do salão dia a dia, funcionárias (nome, cor na agenda e folgas)
   e serviços (duração e preço), nas três sub-abas.
 
@@ -112,7 +114,7 @@ barreira. As políticas atuais dão acesso total a **qualquer utilizador autenti
 src/
   lib/        supabase.ts, types.ts, datas.ts (datas em hora local), agenda.ts (regras), api.ts (consultas)
   hooks/      useSalao.ts — carrega funcionárias, serviços, clientes e a semana da agenda
-  components/ Login, TopNav, AgendaView, EstatisticasView, ClientesView,
+  components/ Login, TopNav, AgendaView, EstatisticasView (contas em lib/estatisticas.ts), ClientesView,
               DefinicoesView (Horario/Funcionarias/ServicosView) e os modais (Modal,
               AgendamentoModal, ClienteModal, FuncionariaModal, ServicoModal)
 supabase/     schema.sql (tudo), reset.sql (apaga tudo), seed_teste.sql, migrations/

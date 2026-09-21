@@ -67,7 +67,8 @@ export default function ClienteModal({
     const futuras = historico.filter((item) => item.fimMs > agora);
 
     return {
-      visitas: passadas.length,
+      // Uma visita é um dia: três serviços na mesma ida ao salão contam uma vez.
+      visitas: new Set(passadas.map((item) => item.data)).size,
       gasto: passadas.reduce((total, item) => total + precoDe(item.servicoId), 0),
       ultima: passadas[0] ?? null,
       proxima: futuras[futuras.length - 1] ?? null,
@@ -130,15 +131,15 @@ export default function ClienteModal({
             <strong>{resumo.visitas}</strong>
           </div>
           <div>
-            <span>Já gastou</span>
+            <span>Total em serviços</span>
             <strong>{formatarPreco(resumo.gasto)}</strong>
           </div>
           <div>
-            <span>Última vez</span>
+            <span>Última visita</span>
             <strong>{resumo.ultima ? dataCurta(resumo.ultima.data) : "—"}</strong>
           </div>
           <div>
-            <span>Próxima</span>
+            <span>Próxima visita</span>
             <strong>{resumo.proxima ? dataCurta(resumo.proxima.data) : "—"}</strong>
           </div>
         </div>
@@ -233,7 +234,7 @@ export default function ClienteModal({
                       </span>
 
                       <span className="historico-servico">
-                        <strong>{servico?.nome ?? "Serviço apagado"}</strong>
+                        <strong>{servico?.nome ?? "Serviço removido"}</strong>
                         {funcionaria ? (
                           <em>
                             <span

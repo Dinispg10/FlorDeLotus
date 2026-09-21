@@ -128,10 +128,11 @@ export const intervaloDaGrelha = (
 
   agendamentos.forEach((marcacao) => {
     const comeca = minutosDesdeMeiaNoite(marcacao.inicio);
-    const acaba = minutosDesdeMeiaNoite(marcacao.fim);
+    if (!Number.isFinite(comeca)) return;
     desde = Math.min(desde, comeca);
-    // Uma marcação que acaba depois da meia-noite estica até ao fim do dia.
-    ate = Math.max(ate, acaba <= comeca ? 24 * 60 : acaba);
+    // Calcula-se o fim pela duração: uma marcação que passe da meia-noite estica
+    // a grelha até ao fim do dia, e um fim mal preenchido não estraga tudo.
+    ate = Math.max(ate, Math.min(24 * 60, comeca + (marcacao.duracaoMinutos || 0)));
   });
 
   return {

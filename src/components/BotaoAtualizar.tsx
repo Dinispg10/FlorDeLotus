@@ -120,7 +120,7 @@ export default function BotaoAtualizar() {
           onClick={() => setEstado({ tipo: "parado" })}
           title={estado.mensagem}
         >
-          ⚠ Não deu para atualizar
+          ⚠ Não foi possível atualizar
         </button>
       );
     }

@@ -527,8 +527,8 @@ export default function AgendamentoModal({
                       type="button"
                       className="icon-button"
                       onClick={() => removerLinha(item.chave)}
-                      aria-label="Tirar este serviço"
-                      title="Tirar este serviço"
+                      aria-label="Remover este serviço"
+                      title="Remover este serviço"
                     >
                       ×
                     </button>
@@ -566,7 +566,7 @@ export default function AgendamentoModal({
               rows={2}
               value={observacoes}
               onChange={(evento) => setObservacoes(evento.target.value)}
-              placeholder="Ex: alergia a amoníaco, quer franja"
+              placeholder="Ex: alergia a amoníaco, prefere franja"
             />
           </label>
 
@@ -633,7 +633,7 @@ export default function AgendamentoModal({
               <br />
               {dataPorExtenso(agendamento.data)} às {agendamento.inicio}
             </p>
-            <p>A marcação sai da agenda e não pode ser recuperada.</p>
+            <p>A marcação será removida da agenda e não poderá ser recuperada.</p>
           </ConfirmarModal>
         ) : null}
       </div>

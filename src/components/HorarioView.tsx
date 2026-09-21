@@ -77,7 +77,7 @@ export default function HorarioView({ configuracoes, onGuardado, onErro, onAviso
           </div>
           <div className="acoes-registo">
             <button type="button" className="ghost-button" onClick={copiarDeSegunda}>
-              Copiar segunda para os outros
+              Aplicar o horário de segunda aos outros dias
             </button>
             <button type="button" className="primary-button" onClick={guardar} disabled={aGuardar}>
               {aGuardar ? "A guardar..." : "Guardar horário"}

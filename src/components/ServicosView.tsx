@@ -68,7 +68,7 @@ export default function ServicosView({
 
         {visiveis.length === 0 ? (
           <div className="estado-vazio">
-            Sem serviços. Cria-os com a duração e o preço certos — é o que preenche as marcações.
+            Ainda não há serviços. Adiciona-os com a duração e o preço, que depois preenchem as marcações automaticamente.
           </div>
         ) : (
           <ul className="lista-registos ampla">

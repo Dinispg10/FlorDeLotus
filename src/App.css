@@ -1037,69 +1037,280 @@ button.cabecalho-coluna:hover {
   color: var(--verde);
 }
 
-.lista-barras {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+/* Filtro do período: uma linha só, em cima, manda em tudo o que está abaixo. */
+.filtros-estatisticas {
+  justify-content: flex-start;
+}
+
+.rotulo-estatisticas {
+  min-width: 190px;
+  text-align: center;
+  cursor: default;
+}
+
+.rotulo-estatisticas:hover {
+  background: transparent;
+  text-decoration: none;
+}
+
+/* Ao trocar de período, o que lá estava fica esbatido até chegar o novo. */
+.conteudo-estatisticas {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
+  transition: opacity 0.15s ease;
 }
 
-.barra-topo {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 10px;
-  margin-bottom: 5px;
+.conteudo-estatisticas.a-atualizar {
+  opacity: 0.5;
 }
 
-.barra-topo strong {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 0.92rem;
-}
-
-.barra-topo span {
-  font-size: 0.78rem;
-  color: var(--texto-suave);
-}
-
-.barra {
-  height: 7px;
-  border-radius: 999px;
-  background: #f3f4f6;
-  overflow: hidden;
-}
-
-.barra-preenchida {
-  height: 100%;
-  border-radius: 999px;
-}
-
-.barra-legenda {
+.stat-card small {
+  display: block;
+  margin-top: 2px;
   font-size: 0.72rem;
   color: var(--texto-suave);
 }
 
-.detalhe-estados {
-  display: flex;
-  gap: 18px;
-  flex-wrap: wrap;
-  border-top: 1px solid var(--linha);
-  margin-top: 14px;
-  padding-top: 12px;
+.stat-card .variacao {
+  display: block;
+  margin: 4px 0 0;
+  font-size: 0.74rem;
+  font-weight: 600;
 }
 
-.detalhe-estados span {
-  font-size: 0.78rem;
+.stat-card .variacao span {
+  display: inline;
+  margin: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+.variacao.sobe {
+  color: var(--verde);
+}
+
+.variacao.desce {
+  color: #b91c1c;
+}
+
+.variacao.neutra {
+  color: var(--texto-suave);
+  font-weight: 500;
+}
+
+/* ---------------- Gráfico de evolução ---------------- */
+
+.grafico {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  grid-template-rows: 220px auto;
+  column-gap: 8px;
+}
+
+.grafico-eixo {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  font-size: 0.7rem;
+  color: var(--texto-suave);
+  font-variant-numeric: tabular-nums;
+  /* Alinha o texto com as linhas da grelha. */
+  margin: -7px 0;
+}
+
+.grafico-area {
+  position: relative;
+}
+
+.grafico-linha {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--linha);
+}
+
+.grafico-barras {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+
+.grafico-faixa {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  cursor: default;
+  outline: none;
+}
+
+.grafico-faixa:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--roxo-suave);
+  border-radius: 6px;
+}
+
+.grafico-barra {
+  width: min(24px, 70%);
+  border-radius: 4px 4px 0 0;
+  background: var(--roxo-vivo);
+  transition: filter 0.12s ease;
+}
+
+.grafico-faixa.ativa .grafico-barra {
+  filter: brightness(1.35);
+}
+
+.grafico-rotulo-valor {
+  position: absolute;
+  transform: translateY(-4px);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--texto);
+  white-space: nowrap;
+}
+
+.grafico-dica {
+  position: absolute;
+  z-index: 5;
+  transform: translateY(-10px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  padding: 7px 10px;
+  border-radius: 9px;
+  background: #fff;
+  border: 1px solid var(--linha);
+  box-shadow: 0 8px 20px rgba(30, 27, 75, 0.16);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.grafico-dica strong {
+  font-size: 0.9rem;
+  color: var(--texto);
+}
+
+.grafico-dica span {
+  font-size: 0.72rem;
   color: var(--texto-suave);
 }
 
-.detalhe-estados strong {
-  color: var(--roxo);
-  margin-left: 4px;
+.grafico-x {
+  grid-column: 2;
+  display: flex;
+  padding-top: 6px;
+}
+
+.grafico-x span {
+  flex: 1;
+  text-align: center;
+  font-size: 0.68rem;
+  color: var(--texto-suave);
+  font-weight: 600;
+  min-width: 0;
+}
+
+.grafico-x span.hoje {
+  color: var(--texto);
+  font-weight: 800;
+}
+
+/* ---------------- Tabelas das estatísticas ---------------- */
+
+.tabela-estatisticas {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.tabela-estatisticas th {
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--texto-suave);
+  padding: 0 8px 8px;
+  border-bottom: 1px solid var(--linha);
+}
+
+.tabela-estatisticas td {
+  padding: 9px 8px;
+  border-bottom: 1px solid var(--linha);
+  vertical-align: middle;
+}
+
+.tabela-estatisticas tr:last-child td {
+  border-bottom: none;
+}
+
+/* Colunas de números alinhadas; a primeira coluna é texto. */
+.tabela-estatisticas td + td,
+.tabela-estatisticas th + th {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tabela-estatisticas small {
+  color: var(--texto-suave);
+}
+
+.medidor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.medidor-trilho {
+  flex: 1;
+  min-width: 50px;
+  height: 7px;
+  border-radius: 999px;
+  background: #f1eff7;
+  overflow: hidden;
+}
+
+.medidor-trilho span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+.medidor-valor {
+  min-width: 34px;
+  text-align: right;
+  font-weight: 700;
+}
+
+.sem-valor {
+  font-size: 0.78rem;
+  color: var(--texto-suave);
+  font-style: italic;
+}
+
+.servico-nome {
+  display: block;
+}
+
+.barra-peso {
+  display: block;
+  height: 4px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: #f1eff7;
+  overflow: hidden;
+}
+
+.barra-peso span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--roxo-suave);
 }
 
 /* ---------------- Formulários ---------------- */

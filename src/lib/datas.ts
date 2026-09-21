@@ -75,7 +75,6 @@ export const dataCurta = (data: string) => {
   return formatadorCurto.format(new Date(ano, mes - 1, dia));
 };
 
-const formatadorDiaSemana = new Intl.DateTimeFormat("pt-PT", { weekday: "short" });
 const formatadorMes = new Intl.DateTimeFormat("pt-PT", { month: "short" });
 
 const paraDate = (data: string) => {
@@ -83,15 +82,42 @@ const paraDate = (data: string) => {
   return new Date(ano, mes - 1, dia);
 };
 
-/** "SEG", "TER", ... para as abas dos dias. */
-export const abreviaturaDiaSemana = (data: string) =>
-  formatadorDiaSemana.format(paraDate(data)).replace(".", "").toUpperCase();
+const ABREVIATURAS = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
+
+/**
+ * "SEG", "TER", ... Em português de Portugal a abreviatura oficial é o nome sem
+ * "-feira" ("segunda"), comprida demais para cabeçalhos; daí a lista fixa.
+ */
+export const abreviaturaDiaSemana = (data: string) => ABREVIATURAS[paraDate(data).getDay()];
 
 export const numeroDoDia = (data: string) => String(Number(data.slice(8, 10)));
 
 /** "21 SET." para o cabeçalho da agenda. */
 export const dataCompacta = (data: string) =>
   `${numeroDoDia(data)} ${formatadorMes.format(paraDate(data)).replace(".", "").toUpperCase()}`;
+
+/** Primeiro dia do mês da data, "2026-09-01". */
+export const inicioDoMes = (data: string) => `${data.slice(0, 7)}-01`;
+
+/** Último dia do mês da data, "2026-09-30". */
+export const fimDoMes = (data: string) => {
+  const [ano, mes] = data.split("-").map(Number);
+  return chaveData(new Date(ano, mes, 0));
+};
+
+/** Dia 1 do mês a `meses` de distância (negativo para trás). */
+export const somarMeses = (data: string, meses: number) => {
+  const [ano, mes] = data.split("-").map(Number);
+  return chaveData(new Date(ano, mes - 1 + meses, 1));
+};
+
+const formatadorMesAno = new Intl.DateTimeFormat("pt-PT", { month: "long", year: "numeric" });
+
+/** "Setembro de 2026". */
+export const mesPorExtenso = (data: string) => {
+  const texto = formatadorMesAno.format(paraDate(data));
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
+};
 
 export const formatarPreco = (valor: number) =>
   new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(valor);

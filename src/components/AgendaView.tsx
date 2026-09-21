@@ -413,7 +413,7 @@ export default function AgendaView({
 
       {colunas.length === 0 ? (
         <div className="estado-vazio">
-          Ainda não há funcionárias ativas. Cria-as na página Funcionárias.
+          Ainda não há funcionárias ativas. Podes adicioná-las em Definições → Funcionárias.
         </div>
       ) : emLista ? (
         <div className="grelha-lista">

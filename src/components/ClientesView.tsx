@@ -80,7 +80,7 @@ export default function ClientesView({
           <div>
             <h2>Clientes ({visiveis.length})</h2>
             <p className="subtitulo">
-              As fichas também são criadas sozinhas ao marcar, se o nome ainda não existir.
+              As fichas também são criadas automaticamente ao marcar, quando o nome ainda não existe.
             </p>
           </div>
           <div className="acoes-registo">
@@ -113,7 +113,7 @@ export default function ClientesView({
         {visiveis.length === 0 ? (
           <div className="estado-vazio">
             {clientes.length === 0
-              ? "Ainda não há clientes. Também são criados sozinhos ao marcar."
+              ? "Ainda não há clientes. As fichas também são criadas automaticamente ao fazer uma marcação."
               : "Nenhum cliente encontrado."}
           </div>
         ) : (
@@ -126,7 +126,8 @@ export default function ClientesView({
                   {cliente.observacoes ? <em>{cliente.observacoes}</em> : null}
                   {marcacoesPorCliente.get(cliente.id) ? (
                     <span className="contagem">
-                      {marcacoesPorCliente.get(cliente.id)} esta semana
+                      {marcacoesPorCliente.get(cliente.id)}{" "}
+                      {marcacoesPorCliente.get(cliente.id) === 1 ? "marcação" : "marcações"} esta semana
                     </span>
                   ) : null}
                 </div>
