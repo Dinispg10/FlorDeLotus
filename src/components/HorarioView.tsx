@@ -3,8 +3,6 @@ import * as api from "../lib/api";
 import { minutosDesdeMeiaNoite } from "../lib/datas";
 import {
   DIAS_DA_SEMANA,
-  GRELHA_FIM,
-  GRELHA_INICIO,
   type Configuracoes,
   type DiaDaSemana,
   type HorarioDia,
@@ -68,12 +66,7 @@ export default function HorarioView({ configuracoes, onGuardado, onErro, onAviso
     <div className="cartao">
         <div className="cartao-topo">
           <div>
-            <h2>Horário do salão</h2>
-            <p className="subtitulo">
-              Manda no que se pode marcar: fora destas horas, a app recusa. A grelha da agenda
-              mostra pelo menos das {GRELHA_INICIO} às {GRELHA_FIM} e estica se o horário for
-              mais longo; as horas fechadas aparecem às riscas.
-            </p>
+            <h2>Horário</h2>
           </div>
           <div className="acoes-registo">
             <button type="button" className="ghost-button" onClick={copiarDeSegunda}>
