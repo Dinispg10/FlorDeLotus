@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "versao": "node scripts/nova-versao.mjs",
-    "telemovel": "vite --host"
+    "telemovel": "vite --host",
+    "telemovel:final": "npm run build && vite preview --host"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0",

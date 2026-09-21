@@ -250,7 +250,12 @@ export default function AgendaView({
     });
   }, [ativas, dia, diasDaSemana, funcionaria, funcionariaSelecionada, visiveis, vista]);
 
-  const passo = vista === "semana" ? 7 : 1;
+  // "21 – 27 SET", ou "28 SET – 4 OUT" quando a semana muda de mês.
+  const domingoDaSemana = somarDias(segunda, 6);
+  const rotuloSemana =
+    segunda.slice(0, 7) === domingoDaSemana.slice(0, 7)
+      ? `${numeroDoDia(segunda)} – ${dataCompacta(domingoDaSemana)}`
+      : `${dataCompacta(segunda)} – ${dataCompacta(domingoDaSemana)}`;
 
   /**
    * A semana de todas as funcionárias não cabe numa grelha de horas: seriam
@@ -293,7 +298,7 @@ export default function AgendaView({
 
   return (
     <section className="agenda">
-      <div className="linha-filtros">
+      <div className="linha-filtros linha-filtros-agenda">
         <div className="chips">
           <button
             type="button"
@@ -315,25 +320,25 @@ export default function AgendaView({
           ))}
         </div>
 
-        <div className="acoes-agenda">
+        {/* Dois seletores, ao centro: um anda de dia em dia, o outro de semana em semana. */}
+        <div className="navegadores-centro">
           <div className="navegador-data">
+            <span className="etiqueta-navegador">Dia</span>
             <button
               type="button"
               className="seta"
-              onClick={() => onMudarDia(somarDias(dia, -passo))}
-              aria-label={vista === "semana" ? "Semana anterior" : "Dia anterior"}
+              onClick={() => onMudarDia(somarDias(dia, -1))}
+              aria-label="Dia anterior"
             >
               ‹
             </button>
             <button
               type="button"
-              className="rotulo-periodo"
+              className={`rotulo-periodo ${dia === hoje() ? "e-hoje" : ""}`}
               onClick={abrirSeletorDeData}
               title="Escolher data"
             >
-              {vista === "semana"
-                ? `${dataCompacta(segunda)} – ${dataCompacta(somarDias(segunda, 6))}`
-                : dataCompacta(dia)}
+              {abreviaturaDiaSemana(dia)}, {dataCompacta(dia)}
             </button>
             <input
               ref={seletorData}
@@ -349,13 +354,36 @@ export default function AgendaView({
             <button
               type="button"
               className="seta"
-              onClick={() => onMudarDia(somarDias(dia, passo))}
-              aria-label={vista === "semana" ? "Semana seguinte" : "Dia seguinte"}
+              onClick={() => onMudarDia(somarDias(dia, 1))}
+              aria-label="Dia seguinte"
             >
               ›
             </button>
           </div>
 
+          <div className="navegador-data">
+            <span className="etiqueta-navegador">Semana</span>
+            <button
+              type="button"
+              className="seta"
+              onClick={() => onMudarDia(somarDias(dia, -7))}
+              aria-label="Semana anterior"
+            >
+              ‹
+            </button>
+            <span className="rotulo-periodo rotulo-semana">{rotuloSemana}</span>
+            <button
+              type="button"
+              className="seta"
+              onClick={() => onMudarDia(somarDias(dia, 7))}
+              aria-label="Semana seguinte"
+            >
+              ›
+            </button>
+          </div>
+        </div>
+
+        <div className="acoes-agenda">
           {!emLista ? (
             <div className="zoom-agenda" title="Espaço por hora">
               <button

@@ -653,6 +653,61 @@ h3 {
   z-index: 4;
 }
 
+/* Linha de cima da agenda: funcionárias | seletores de dia e semana | ações. */
+.linha-filtros-agenda {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+
+.linha-filtros-agenda > .chips {
+  justify-self: start;
+}
+
+.linha-filtros-agenda > .acoes-agenda {
+  justify-self: end;
+}
+
+.navegadores-centro {
+  display: flex;
+  gap: 8px;
+}
+
+.etiqueta-navegador {
+  padding: 0 2px 0 6px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.rotulo-periodo.e-hoje {
+  color: var(--verde);
+}
+
+/* O rótulo da semana só informa; escolher uma data faz-se no seletor do dia. */
+.rotulo-semana,
+.rotulo-semana:hover {
+  cursor: default;
+  background: transparent;
+  text-decoration: none;
+}
+
+/* Sem largura para três zonas, os seletores sobem para uma linha própria, ao centro. */
+@media (max-width: 1280px) {
+  .linha-filtros-agenda {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .navegadores-centro {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-self: center;
+  }
+}
+
 /* ‹ data › numa peça só, entre as funcionárias e o Dia/Semana. */
 .navegador-data {
   position: relative;

@@ -1,0 +1,31 @@
+{
+  "name": "Flor de Lotus — Agenda do salão",
+  "short_name": "Flor de Lotus",
+  "description": "Agenda do salão Flor de Lotus",
+  "lang": "pt-PT",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f6fb",
+  "theme_color": "#4c1d95",
+  "icons": [
+    {
+      "src": "/icons/icone-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icone-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icone-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
