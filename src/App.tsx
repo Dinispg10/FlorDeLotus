@@ -6,9 +6,11 @@ import * as api from "./lib/api";
 import { dataPorExtenso, hoje } from "./lib/datas";
 import type { Agendamento, Cliente } from "./lib/types";
 import { useSalao } from "./hooks/useSalao";
+import { useEcraPequeno } from "./hooks/useEcraPequeno";
 import Login from "./components/Login";
 import TopNav, { type Separador } from "./components/TopNav";
 import AgendaView, { type Vista } from "./components/AgendaView";
+import AgendaTelemovel from "./components/AgendaTelemovel";
 import AgendamentoModal, { type PreDefinicao } from "./components/AgendamentoModal";
 import ConfirmarModal from "./components/ConfirmarModal";
 import ClientesView from "./components/ClientesView";
@@ -34,6 +36,7 @@ function App() {
   const [aCancelarProcessar, setACancelarProcessar] = useState(false);
 
   const salao = useSalao(Boolean(session), dia);
+  const telemovel = useEcraPequeno();
 
   useEffect(() => {
     if (!supabase) {
@@ -198,6 +201,22 @@ function App() {
 
         {salao.aCarregar ? (
           <div className="estado-vazio">A carregar a agenda...</div>
+        ) : separador === "agenda" && telemovel ? (
+          <AgendaTelemovel
+            dia={dia}
+            funcionariaSelecionada={funcionariaSelecionada}
+            agendamentosDaSemana={salao.agendamentos}
+            ausencias={salao.ausencias}
+            funcionarios={salao.funcionarios}
+            servicos={salao.servicos}
+            configuracoes={salao.configuracoes}
+            bloqueado={faltaCatalogo}
+            motivoBloqueio={motivoBloqueio}
+            onMudarDia={setDia}
+            onEscolherFuncionaria={escolherFuncionaria}
+            onAbrirNovo={abrirNovo}
+            onAbrirExistente={abrirExistente}
+          />
         ) : separador === "agenda" ? (
           <AgendaView
             dia={dia}

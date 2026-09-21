@@ -2260,3 +2260,340 @@ button.cabecalho-coluna:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* ================================================================== */
+/* Telemóvel                                                          */
+/* ================================================================== */
+
+/* Agenda do telemóvel: um dia de cada vez, em lista. Só existe em ecrãs pequenos. */
+.agenda-telemovel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cabecalho-dia-telemovel {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.cabecalho-dia-telemovel .seta {
+  width: 44px;
+  height: auto;
+  border-radius: 12px;
+  font-size: 1.4rem;
+}
+
+/* O campo de data fica invisível por cima do texto: tocar abre o calendário do telemóvel. */
+.data-telemovel {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid var(--linha);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.data-telemovel strong {
+  font-size: 1rem;
+  color: var(--roxo);
+}
+
+.data-telemovel span {
+  font-size: 0.74rem;
+  color: var(--texto-suave);
+}
+
+.data-telemovel input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Filtro de funcionárias numa linha que desliza, em vez de partir em várias. */
+.chips-deslizar {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.chips-deslizar::-webkit-scrollbar {
+  display: none;
+}
+
+.chips-deslizar .chip {
+  flex-shrink: 0;
+}
+
+.lista-dia-telemovel {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* Espaço para o botão + não tapar a última marcação. */
+  padding-bottom: 90px;
+}
+
+.cartao-marcacao {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 12px;
+  text-align: left;
+  background: #fff;
+  border: 1px solid var(--linha);
+  border-left: 4px solid var(--roxo-vivo);
+  border-radius: 12px;
+}
+
+.cartao-marcacao:active {
+  background: var(--roxo-claro);
+}
+
+.cartao-marcacao.estado-pendente {
+  border-style: dashed;
+  border-left-style: solid;
+}
+
+.cartao-horas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 48px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cartao-horas strong {
+  font-size: 1rem;
+  color: var(--texto);
+}
+
+.cartao-horas span {
+  font-size: 0.74rem;
+  color: var(--texto-suave);
+}
+
+.cartao-corpo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.cartao-corpo strong,
+.cartao-corpo span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cartao-corpo strong {
+  font-size: 0.95rem;
+}
+
+.cartao-corpo span {
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}
+
+/* Botão + para marcar, sempre à mão do polegar. */
+.botao-flutuante {
+  position: fixed;
+  right: 16px;
+  bottom: calc(84px + env(safe-area-inset-bottom));
+  z-index: 20;
+  width: 56px;
+  height: 56px;
+  border: none;
+  border-radius: 50%;
+  background: var(--verde-vivo);
+  color: #fff;
+  font-size: 1.8rem;
+  line-height: 1;
+  box-shadow: 0 8px 20px rgba(4, 120, 87, 0.4);
+}
+
+.botao-flutuante:disabled {
+  opacity: 0.5;
+}
+
+@media (max-width: 700px) {
+  .app-layout {
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  /* Em cima fica só o nome e o logout; a navegação desce para a barra de baixo. */
+  .topnav {
+    height: calc(52px + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) 14px 0;
+    gap: 10px;
+  }
+
+  .topnav-links {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+    background: #fff;
+    border-top: 1px solid var(--linha);
+    box-shadow: 0 -4px 16px rgba(30, 27, 75, 0.08);
+  }
+
+  .topnav-links button {
+    padding: 10px 2px;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    color: var(--texto-suave);
+  }
+
+  .topnav-links button:hover {
+    background: transparent;
+    color: var(--texto-suave);
+  }
+
+  .topnav-links button.ativo {
+    background: var(--roxo-claro);
+    color: var(--roxo);
+  }
+
+  .conteudo {
+    padding: 12px 12px calc(76px + env(safe-area-inset-bottom));
+  }
+
+  .notificacoes {
+    bottom: calc(84px + env(safe-area-inset-bottom));
+  }
+
+  /* As janelas ocupam o ecrã todo. */
+  .modal-overlay {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .modal-card,
+  .modal-larga {
+    width: 100%;
+    min-height: 100%;
+    border-radius: 0;
+    box-shadow: none;
+    padding: calc(16px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+  }
+
+  /* No iPhone, um campo com letra abaixo de 16px faz zoom à página ao tocar nele. */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  .inline-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .campos-servico {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .campos-servico label:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .modal-actions-direita > * {
+    flex: 1;
+  }
+
+  .primary-button,
+  .ghost-button,
+  .danger-button {
+    padding: 0.8rem 1rem;
+  }
+
+  /* Listas: botões por baixo do nome, a toda a largura, fáceis de acertar com o dedo. */
+  .lista-registos li {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .acoes-registo > button {
+    flex: 1;
+  }
+
+  .cartao-topo .acoes-registo {
+    width: 100%;
+  }
+
+  .sub-abas {
+    width: 100%;
+  }
+
+  .sub-abas button {
+    flex: 1;
+  }
+
+  /* Estatísticas mais compactas. */
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .stat-card {
+    padding: 12px 14px;
+  }
+
+  .stat-card strong {
+    font-size: 1.3rem;
+  }
+
+  .filtros-estatisticas {
+    flex-wrap: wrap;
+  }
+
+  .rotulo-estatisticas {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .grafico {
+    grid-template-columns: 44px minmax(0, 1fr);
+    grid-template-rows: 180px auto;
+  }
+
+  .tabela-estatisticas {
+    font-size: 0.78rem;
+  }
+
+  .resumo-cliente {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .historico-data {
+    flex-basis: 78px;
+  }
+}
