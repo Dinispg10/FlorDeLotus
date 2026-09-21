@@ -2259,6 +2259,99 @@ button.cabecalho-coluna:hover {
   color: var(--verde);
 }
 
+/* ---------------- Lembretes ---------------- */
+
+.caixa-modelo {
+  border: 1px solid var(--linha);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  background: #fbfaff;
+}
+
+.modelo-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.modelo-topo strong {
+  font-size: 0.9rem;
+}
+
+.caixa-modelo textarea {
+  width: 100%;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  background: #fff;
+  padding: 0.7rem 0.85rem;
+  resize: vertical;
+}
+
+.exemplo-mensagem {
+  margin: 0;
+  padding: 10px 14px;
+  background: #fff;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  font-size: 0.88rem;
+  color: var(--texto);
+}
+
+.caixa-modelo .dica {
+  margin-top: 6px;
+}
+
+.exemplo-rotulo {
+  display: block;
+  margin: 12px 0 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--texto-suave);
+}
+
+.caixa-modelo .modal-actions-direita {
+  margin-top: 12px;
+}
+
+/* A data por extenso; por cima dela, invisível, o calendário para escolher o dia. */
+.data-lembretes {
+  position: relative;
+  padding: 0 6px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--roxo);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.data-lembretes input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.lista-registos li.avisado {
+  background: var(--verde-claro);
+  border-color: #a7f3d0;
+}
+
+.etiqueta-avisado {
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--verde-claro);
+  color: var(--verde);
+}
+
 /* ---------------- Definições ---------------- */
 
 .linha-horario {
@@ -2450,6 +2543,7 @@ button.cabecalho-coluna:hover {
 
 /* Agenda do telemóvel: um dia de cada vez, em lista. Só existe em ecrãs pequenos. */
 .agenda-telemovel {
+  position: relative;
   flex: 1;
   min-height: 0;
   display: flex;
@@ -2597,9 +2691,9 @@ button.cabecalho-coluna:hover {
 
 /* Botão + para marcar, sempre à mão do polegar. */
 .botao-flutuante {
-  position: fixed;
-  right: 16px;
-  bottom: calc(84px + env(safe-area-inset-bottom));
+  position: absolute;
+  right: 4px;
+  bottom: 12px;
   z-index: 20;
   width: 56px;
   height: 56px;
@@ -2617,9 +2711,18 @@ button.cabecalho-coluna:hover {
 }
 
 @media (max-width: 700px) {
+  /* Presa às quatro margens do ecrã, em vez de ter uma altura: depois de o teclado
+     fechar, alguns telemóveis não devolvem a altura certa e ficava uma faixa cinzenta
+     por baixo. A página por trás não desliza; só as listas por dentro. */
+  html,
+  body {
+    overflow: hidden;
+  }
+
   .app-layout {
-    height: 100vh;
-    height: 100dvh;
+    position: fixed;
+    inset: 0;
+    height: auto;
   }
 
   /* Em cima fica só o nome e o logout; a navegação desce para a barra de baixo. */
@@ -2629,59 +2732,103 @@ button.cabecalho-coluna:hover {
     gap: 10px;
   }
 
+  /* A navegação desce para a barra do fundo (NavegacaoFundo). */
   .topnav-links {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 40;
+    display: none;
+  }
+
+  .navegacao-fundo {
+    flex: 0 0 auto;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 4px;
-    padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
     background: #fff;
     border-top: 1px solid var(--linha);
     box-shadow: 0 -4px 16px rgba(30, 27, 75, 0.08);
   }
 
-  .topnav-links button {
-    padding: 10px 2px;
-    border-radius: 10px;
-    font-size: 0.78rem;
-    color: var(--texto-suave);
-  }
-
-  .topnav-links button:hover {
+  .navegacao-fundo button {
+    border: none;
     background: transparent;
+    padding: 10px 0;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     color: var(--texto-suave);
   }
 
-  .topnav-links button.ativo {
+  .navegacao-fundo button.ativo {
     background: var(--roxo-claro);
     color: var(--roxo);
   }
 
   .conteudo {
-    padding: 12px 12px calc(76px + env(safe-area-inset-bottom));
+    padding: 12px;
   }
 
   .notificacoes {
-    bottom: calc(84px + env(safe-area-inset-bottom));
+    bottom: calc(80px + env(safe-area-inset-bottom));
   }
 
-  /* As janelas ocupam o ecrã todo. */
+  /* Nada de "elástico": a página não se arrasta toda, e o deslizar de uma lista ou
+     de uma janela não passa para o que está por trás. */
+  html,
+  body {
+    overscroll-behavior: none;
+  }
+
+  .conteudo,
+  .modal-card {
+    overscroll-behavior: contain;
+  }
+
+  /* As janelas ocupam o ecrã exato: o título fica fixo em cima, os botões fixos em
+     baixo, e só o meio desliza. */
   .modal-overlay {
     padding: 0;
     align-items: stretch;
+    overflow: hidden;
   }
 
   .modal-card,
   .modal-larga {
     width: 100%;
-    min-height: 100%;
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
     border-radius: 0;
     box-shadow: none;
-    padding: calc(16px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+    padding: 0 16px;
+  }
+
+  /* Quando há conteúdo depois do formulário (histórico, folgas), respira no fim. */
+  .modal-card > section:last-child {
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  }
+
+  .modal-card > .modal-header {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    margin: 0 -16px 16px;
+    padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
+    background: #fff;
+    border-bottom: 1px solid var(--linha);
+  }
+
+  .booking-form > .modal-actions,
+  .booking-form > .modal-actions-direita {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    margin: 0 -16px;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: #fff;
+    border-top: 1px solid var(--linha);
   }
 
   /* No iPhone, um campo com letra abaixo de 16px faz zoom à página ao tocar nele. */

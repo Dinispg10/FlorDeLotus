@@ -113,7 +113,7 @@ export type Configuracoes = {
 };
 
 export const MODELO_LEMBRETE_PADRAO =
-  "Ola {cliente}! Lembrete da sua marcacao no Flor de Lotus: {dia} as {hora}, {servico} com {funcionaria}. Ate ja!";
+  "Olá {cliente}! Lembramos a sua marcação no Flor de Lotus: {dia} às {hora}, {servico} com {funcionaria}. Até já!";
 
 const diaUtil: HorarioDia = { aberto: true, inicio: "09:00", fim: "19:00" };
 

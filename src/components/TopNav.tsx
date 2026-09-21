@@ -1,11 +1,12 @@
 import BotaoAtualizar from "./BotaoAtualizar";
 import BotoesJanela from "./BotoesJanela";
 
-export type Separador = "agenda" | "clientes" | "estatisticas" | "definicoes";
+export type Separador = "agenda" | "clientes" | "lembretes" | "estatisticas" | "definicoes";
 
 const SEPARADORES: { chave: Separador; rotulo: string }[] = [
   { chave: "agenda", rotulo: "Agenda" },
   { chave: "clientes", rotulo: "Clientes" },
+  { chave: "lembretes", rotulo: "Lembretes" },
   { chave: "estatisticas", rotulo: "Estatísticas" },
   { chave: "definicoes", rotulo: "Definições" },
 ];
@@ -54,5 +55,29 @@ export default function TopNav({ separador, onMudarSeparador, onSair }: Props) {
 
       <BotoesJanela />
     </header>
+  );
+}
+
+/**
+ * No telemóvel a navegação vive no fundo do ecrã. É a última peça da app (não fica
+ * "pregada" com position: fixed), para o teclado não a tirar do sítio.
+ */
+export function NavegacaoFundo({
+  separador,
+  onMudarSeparador,
+}: Pick<Props, "separador" | "onMudarSeparador">) {
+  return (
+    <nav className="navegacao-fundo">
+      {SEPARADORES.map((item) => (
+        <button
+          key={item.chave}
+          type="button"
+          className={separador === item.chave ? "ativo" : ""}
+          onClick={() => onMudarSeparador(item.chave)}
+        >
+          {item.rotulo}
+        </button>
+      ))}
+    </nav>
   );
 }

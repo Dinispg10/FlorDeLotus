@@ -193,4 +193,4 @@ INSERT INTO configuracoes (nome, valor) VALUES
   ('horario_7', 'fechado'),
   ('lembrete_horas_antes', '8'),
   ('sms_ativo', 'false'),
-  ('modelo_lembrete', 'Ola {cliente}! Lembrete da sua marcacao no Flor de Lotus: {dia} as {hora}, {servico} com {funcionaria}. Ate ja!');
+  ('modelo_lembrete', 'Olá {cliente}! Lembramos a sua marcação no Flor de Lotus: {dia} às {hora}, {servico} com {funcionaria}. Até já!');

@@ -8,7 +8,7 @@ import type { Agendamento, Cliente } from "./lib/types";
 import { useSalao } from "./hooks/useSalao";
 import { useEcraPequeno } from "./hooks/useEcraPequeno";
 import Login from "./components/Login";
-import TopNav, { type Separador } from "./components/TopNav";
+import TopNav, { NavegacaoFundo, type Separador } from "./components/TopNav";
 import AgendaView, { type Vista } from "./components/AgendaView";
 import AgendaTelemovel from "./components/AgendaTelemovel";
 import AgendamentoModal, { type PreDefinicao } from "./components/AgendamentoModal";
@@ -16,6 +16,7 @@ import ConfirmarModal from "./components/ConfirmarModal";
 import ClientesView from "./components/ClientesView";
 import DefinicoesView, { type SeccaoDefinicoes } from "./components/DefinicoesView";
 import EstatisticasView from "./components/EstatisticasView";
+import LembretesView from "./components/LembretesView";
 
 type EstadoModal = {
   agendamento: Agendamento | null;
@@ -236,6 +237,15 @@ function App() {
             onAbrirExistente={abrirExistente}
             onPedirCancelamento={setACancelar}
           />
+        ) : separador === "lembretes" ? (
+          <LembretesView
+            configuracoes={salao.configuracoes}
+            funcionarios={salao.funcionarios}
+            servicos={salao.servicos}
+            onConfiguracoesAlteradas={salao.recarregarBase}
+            onErro={salao.setErro}
+            onAviso={setAviso}
+          />
         ) : separador === "estatisticas" ? (
           <EstatisticasView
             configuracoes={salao.configuracoes}
@@ -270,6 +280,10 @@ function App() {
           />
         )}
       </main>
+
+      {telemovel ? (
+        <NavegacaoFundo separador={separador} onMudarSeparador={setSeparador} />
+      ) : null}
 
       {modal ? (
         <AgendamentoModal

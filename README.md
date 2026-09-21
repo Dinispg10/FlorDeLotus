@@ -6,13 +6,19 @@ Supabase, por isso vários computadores do salão veem a mesma agenda.
 
 ## O que a app faz
 
-- **Barra de navegação no topo**: Agenda, Clientes, Estatísticas e Definições (com
+- **Barra de navegação no topo**: Agenda, Clientes, Lembretes, Estatísticas e Definições (com
   sub-abas Horário, Funcionárias e Serviços). A barra faz também de moldura da janela —
   arrasta-se por ela e tem os botões de minimizar, maximizar e fechar.
 - **Agenda diária** com uma coluna por funcionária e grelha de horas. Os botões por cima
   filtram por funcionária: ao escolher uma, abre a **semana dela** (uma coluna por dia) a
   ocupar o ecrã todo. Clicar num espaço livre cria uma marcação já com o dia, a hora e a
   funcionária certos.
+- **Lembretes sem custos** (página Lembretes): abre no dia seguinte e lista um cliente
+  por linha. Quem tem vários serviços seguidos recebe uma só mensagem. O botão WhatsApp
+  abre a conversa com o texto já escrito; no telemóvel há também SMS (vai pelo tarifário
+  do telemóvel) e no computador um botão para copiar. Cada cliente fica "Avisado" (dá
+  para anular). O texto edita-se na própria página, com campos como `{cliente}` e `{hora}`.
+  Não há envio automático: isso exigiria um fornecedor de SMS pago (ver o fim deste ficheiro).
 - **Estatísticas** por dia, semana ou mês, independentes da agenda: faturação, marcações,
   valor médio e clientes atendidos, cada um comparado com o período anterior; gráfico da
   faturação ao longo do período (com tabela dos valores); e, por funcionária e por serviço,
@@ -160,6 +166,7 @@ scripts/      nova-versao.mjs (npm run versao)
 
 ## Ainda por fazer
 
-- Lembretes aos clientes. A página está escrita e posta de lado em
-  `parked/mensagens/` — o LEIA-ME de lá explica como a voltar a ligar (WhatsApp, sem
-  custos) e o que falta para o envio automático por SMS.
+- Envio automático de lembretes por SMS, sem ninguém carregar em enviar. Falta uma
+  Edge Function no Supabase que guarde a chave do fornecedor (Twilio, Vonage ou um
+  português) e mande as mensagens; a chave **não pode** ficar na app, porque se extrai do
+  `.exe`. A ~6 cêntimos por SMS, 12 marcações por dia dão à volta de €18 por mês.
