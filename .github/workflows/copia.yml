@@ -42,6 +42,26 @@ jobs:
             echo "::error::Em SUPABASE_DB_URL falta trocar [YOUR-PASSWORD] pela palavra-passe da base de dados."
             exit 1
           fi
+          # Enganos comuns ao colar o endereço (nunca se mostra o valor, só o que está mal).
+          RESTO="${SUPABASE_DB_URL#postgresql://}"
+          UTILIZADOR="${RESTO%%:*}"
+          PASSE="${RESTO#*:}"; PASSE="${PASSE%@*}"
+          if [[ "$UTILIZADOR" != postgres.* ]]; then
+            echo "::error::O utilizador no endereço tem de ser 'postgres.' seguido do código do projeto (como vem no Session pooler)."
+            exit 1
+          fi
+          if [[ "$PASSE" == \[* || "$PASSE" == *\] ]]; then
+            echo "::error::A palavra-passe ficou entre [ ]: tira os parênteses retos."
+            exit 1
+          fi
+          if [[ "$SUPABASE_DB_URL" =~ [[:space:]] ]]; then
+            echo "::error::O endereço tem espaços ou uma mudança de linha: volta a colá-lo sem nada a mais."
+            exit 1
+          fi
+          if [[ "$PASSE" == *[@#/?%]* ]]; then
+            echo "::error::A palavra-passe tem símbolos (@ # / ? %) que baralham o endereço: usa só letras e números."
+            exit 1
+          fi
 
       # O pg_dump tem de ser da mesma versão do Postgres do Supabase (17) ou mais nova.
       - name: Instalar o pg_dump 17
