@@ -57,25 +57,75 @@ h3 {
 /* ---------------- Login ---------------- */
 
 .login-shell {
+  position: relative;
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 18px;
   padding: 24px;
-  background: linear-gradient(140deg, #2e1065 0%, #4c1d95 45%, #047857 135%);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(139, 92, 246, 0.35), transparent 45%),
+    linear-gradient(140deg, #2e1065 0%, #4c1d95 50%, #065f46 130%);
+}
+
+/* No programa do computador: arrastar a janela e os botões de minimizar/fechar. */
+.login-barra {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 44px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 14px;
+  z-index: 2;
+}
+
+.login-barra .janela-botao {
+  color: #fff;
+}
+
+/* A flor em ponto grande, atrás do cartão. */
+.login-petalas {
+  position: absolute;
+  width: min(120vw, 900px);
+  right: -18%;
+  bottom: -38%;
+  fill: rgba(167, 243, 208, 0.055);
+  pointer-events: none;
 }
 
 .login-card {
-  width: min(100%, 420px);
+  position: relative;
+  z-index: 1;
+  width: min(100%, 400px);
   background: #fff;
-  border-radius: 20px;
-  padding: 32px;
-  box-shadow: 0 24px 50px rgba(30, 27, 75, 0.25);
+  border-radius: 22px;
+  padding: 30px 32px 24px;
+  box-shadow: 0 28px 60px rgba(20, 10, 60, 0.35);
+}
+
+.login-logo {
+  display: block;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 16px;
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(76, 29, 149, 0.3);
 }
 
 .login-card h1 {
-  margin: 0 0 22px;
-  font-size: 2rem;
+  margin: 0;
+  font-size: 1.9rem;
+  line-height: 1.15;
+}
+
+.login-cumprimento {
+  margin: 6px 0 22px;
+  color: var(--texto-suave);
+  font-size: 0.92rem;
 }
 
 .login-form {
@@ -100,6 +150,41 @@ h3 {
   background: #fbfaff;
   padding: 0.85rem 1rem;
   color: var(--texto);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.login-form input:focus {
+  outline: none;
+  border-color: var(--roxo-suave);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.18);
+  background: #fff;
+}
+
+.campo-password {
+  position: relative;
+  display: block;
+}
+
+.campo-password input {
+  padding-right: 5.5rem;
+}
+
+.mostrar-password {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 7px;
+  padding: 5px 9px;
+  background: var(--roxo-claro);
+  color: var(--roxo-vivo);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.mostrar-password:hover {
+  background: #e9e3ff;
 }
 
 .login-note {
@@ -107,11 +192,54 @@ h3 {
   color: #4b5563;
 }
 
+.login-aviso {
+  margin: -6px 0 0;
+  color: #b45309;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 .login-error {
   margin: 0;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: #fef2f2;
   color: #b91c1c;
   font-size: 0.82rem;
   font-weight: 600;
+}
+
+.login-ajuda {
+  margin: 18px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--linha);
+  color: var(--texto-suave);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.login-versao {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.72rem;
+}
+
+@media (max-width: 700px) {
+  .login-shell {
+    padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+  }
+
+  .login-card {
+    padding: 26px 22px 20px;
+  }
+
+  .login-petalas {
+    width: 170vw;
+    right: -60%;
+    bottom: -30%;
+  }
 }
 
 /* ---------------- Estrutura ---------------- */
