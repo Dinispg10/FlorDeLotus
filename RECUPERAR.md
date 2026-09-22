@@ -59,8 +59,8 @@ ajuda.
 1. Descarrega o instalador mais recente de
    <https://github.com/Dinispg10/FlorDeLotus/releases/latest> (o ficheiro `-setup.exe`) e
    instala por cima. Não se perde nada: os dados estão todos no Supabase.
-2. Entretanto, o salão pode trabalhar pelo telemóvel, em
-   <https://flor-de-lotus-7rb.pages.dev>. É a mesma agenda.
+2. Entretanto, o salão pode trabalhar pelo telemóvel: o endereço está no
+   `NOTAS-LOCAIS.md` (fica só no computador de desenvolvimento). É a mesma agenda.
 
 ---
 
@@ -81,8 +81,8 @@ ajuda.
 O pior caso. A cópia tem os dados todos, mas o endereço e as chaves mudam, por isso a app
 tem de ser lançada outra vez.
 
-1. Cria um projeto novo no Supabase (região Irlanda, `eu-west-1`), com uma palavra-passe
-   de base de dados só com letras e números.
+1. Cria um projeto novo no Supabase, na mesma região do antigo (ver `NOTAS-LOCAIS.md`),
+   com uma palavra-passe de base de dados só com letras e números.
 2. Corre o `supabase/schema.sql` no SQL Editor, para as tabelas existirem.
 3. Atualiza os segredos no GitHub (**Settings → Secrets and variables → Actions**):
    `SUPABASE_DB_URL` (ligação **Session pooler** do projeto novo), `VITE_SUPABASE_URL` e
