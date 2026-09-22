@@ -153,6 +153,10 @@ A app do salão não tem nada disto: as cópias são só para quem gere o projet
 
 ⚠️ Guarda a `COPIA_PASSWORD` num gestor de palavras-passe. Sem ela, as cópias não se abrem.
 
+**Se correr mal:** o [RECUPERAR.md](RECUPERAR.md) diz o que fazer em cada caso (dados
+apagados, base estragada, projeto perdido, alguém sem conseguir entrar). A reposição
+faz-se no workflow **Repor a cópia de segurança**, escrevendo REPOR para confirmar.
+
 **Abrir uma cópia:** GitHub → Actions → Cópia de segurança → a execução do dia →
 *Artifacts* → descarregar e descompactar o `.zip`. Depois, no Git Bash:
 
