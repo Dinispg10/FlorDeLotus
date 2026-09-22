@@ -87,6 +87,8 @@ type RawCliente = {
 
 type RawAgendamento = {
   id: string;
+  // Só existe depois da migração 014.
+  visita_id?: string | null;
   cliente_id: string | null;
   funcionario_id: string | null;
   servico_id: string | null;
@@ -132,6 +134,7 @@ const paraAgendamento = (item: RawAgendamento): Agendamento => {
 
   return {
     id: item.id,
+    visitaId: item.visita_id ?? item.id,
     clienteId: item.cliente_id,
     cliente: item.clientes?.nome ?? (item.cliente_id ? "Cliente sem nome" : "Cliente removido"),
     telefone: item.telefone_cliente ?? item.clientes?.telefone ?? "",
@@ -426,6 +429,41 @@ const corpoAgendamento = (dados: DadosAgendamento) => {
     telefone_cliente: dados.telefone || null,
     observacoes: dados.observacoes || null,
   };
+};
+
+/** Todos os serviços de uma visita, pela ordem do dia. */
+export const listarDaVisita = async (visitaId: string): Promise<Agendamento[]> => {
+  const { data, error } = await client()
+    .from("agendamentos")
+    .select(SELECT_AGENDAMENTO)
+    .eq("visita_id", visitaId)
+    .order("data_hora_inicio", { ascending: true });
+
+  falhar("Não foi possível carregar a visita", error);
+  return (data ?? []).map((item) => paraAgendamento(item as unknown as RawAgendamento));
+};
+
+/**
+ * Guarda uma visita inteira de uma só vez (migração 014): muda os serviços que
+ * trazem id, cria os outros e apaga os de `apagar`. Ou fica tudo, ou nada.
+ */
+export const guardarVisita = async (dados: {
+  visitaId: string;
+  marcacoes: (DadosAgendamento & { id?: string })[];
+  apagar: string[];
+}): Promise<Agendamento[]> => {
+  const { error } = await client().rpc("guardar_visita", {
+    p_visita_id: dados.visitaId,
+    p_marcacoes: dados.marcacoes.map((item) => ({
+      ...(item.id ? { id: item.id } : {}),
+      ...corpoAgendamento(item),
+    })),
+    p_apagar: dados.apagar,
+  });
+
+  falhar("Não foi possível guardar a marcação", error);
+  // A função devolve as linhas sem o nome do cliente; relê-se com ele.
+  return listarDaVisita(dados.visitaId);
 };
 
 export const criarAgendamento = async (dados: DadosAgendamento): Promise<Agendamento> => {

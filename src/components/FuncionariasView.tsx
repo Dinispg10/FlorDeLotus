@@ -55,7 +55,7 @@ export default function FuncionariasView({
       <div className="cartao">
         <div className="cartao-topo">
           <div>
-            <h2>Funcionárias ({funcionarios.length})</h2>
+            <h2>Funcionárias</h2>
             <p className="subtitulo">
               Cada uma tem uma coluna na agenda. As folgas e as férias marcam-se na ficha.
             </p>

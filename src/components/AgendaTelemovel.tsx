@@ -12,6 +12,7 @@ import {
 } from "../lib/types";
 import type { PreDefinicao } from "./AgendamentoModal";
 import PesquisaMarcacoes from "./PesquisaMarcacoes";
+import SeletorTelemovel from "./SeletorTelemovel";
 
 /** Distância mínima, em pixels, para um deslizar do dedo mudar de dia. */
 const DESLIZE_MINIMO = 70;
@@ -72,42 +73,18 @@ export default function AgendaTelemovel({
 
   return (
     <section className="agenda-telemovel">
-      <div className="cabecalho-dia-telemovel">
-        <button
-          type="button"
-          className="seta"
-          onClick={() => onMudarDia(somarDias(dia, -1))}
-          aria-label="Dia anterior"
-        >
-          ‹
-        </button>
-
-        {/* O campo de data fica invisível por cima do texto: tocar abre o calendário. */}
-        <label className="data-telemovel">
-          <strong>{dataPorExtenso(dia)}</strong>
-          <span>
-            {dia === hoje() ? "Hoje · " : ""}
-            {horario.aberto ? `Aberto das ${horario.inicio} às ${horario.fim}` : "Salão fechado"}
-          </span>
-          <input
-            type="date"
-            value={dia}
-            onChange={(evento) => {
-              if (evento.target.value) onMudarDia(evento.target.value);
-            }}
-            aria-label="Escolher data"
-          />
-        </label>
-
-        <button
-          type="button"
-          className="seta"
-          onClick={() => onMudarDia(somarDias(dia, 1))}
-          aria-label="Dia seguinte"
-        >
-          ›
-        </button>
-      </div>
+      <SeletorTelemovel
+        titulo={dataPorExtenso(dia)}
+        subtitulo={`${dia === hoje() ? "Hoje · " : ""}${
+          horario.aberto ? `Aberto das ${horario.inicio} às ${horario.fim}` : "Salão fechado"
+        }`}
+        dia={dia}
+        onEscolherDia={onMudarDia}
+        onAnterior={() => onMudarDia(somarDias(dia, -1))}
+        onSeguinte={() => onMudarDia(somarDias(dia, 1))}
+        rotuloAnterior="Dia anterior"
+        rotuloSeguinte="Dia seguinte"
+      />
 
       <div className="linha-chips-telemovel">
       <PesquisaMarcacoes

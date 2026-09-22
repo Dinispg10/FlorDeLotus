@@ -46,9 +46,9 @@ export default function ServicosView({
       <div className="cartao">
         <div className="cartao-topo">
           <div>
-            <h2>Serviços ({visiveis.length})</h2>
+            <h2>Serviços</h2>
             <p className="subtitulo">
-              A duração e o preço daqui preenchem sozinhos as marcações.
+              A duração e o preço daqui preenchem sozinhos as marcações, podendo ser alterados dependendo da marcação.
             </p>
           </div>
           <div className="acoes-registo">

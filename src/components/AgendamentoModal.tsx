@@ -5,6 +5,7 @@ import {
   encadearServicos,
   encontrarConflito,
   horarioDoDia,
+  linhasDaVisita,
   normalizarTelefone,
   normalizarTexto,
   validarAgendamento,
@@ -33,11 +34,11 @@ export type PreDefinicao = {
 /** Um serviço da visita. Várias linhas = vários serviços na mesma ida ao salão. */
 type LinhaServico = {
   chave: string;
+  /** A marcação que esta linha já é na base de dados (ao editar uma visita). */
+  id?: string;
   servicoId: string;
   funcionarioId: string;
   duracaoMinutos: number;
-  /** Em vez de vir a seguir, acontece ao mesmo tempo que o serviço anterior. */
-  emParalelo: boolean;
 };
 
 type Props = {
@@ -50,8 +51,40 @@ type Props = {
   ausencias: Ausencia[];
   configuracoes: Configuracoes;
   onFechar: () => void;
-  onGuardado: (agendamentos: Agendamento[], clienteNovo: Cliente | null) => void;
-  onApagado: (id: string) => void;
+  onGuardado: (agendamentos: Agendamento[], clienteNovo: Cliente | null, removidos: string[]) => void;
+  onApagado: (ids: string[]) => void;
+};
+
+/** crypto.randomUUID só existe em https; no telemóvel em teste (http) faz-se à mão. */
+const novoId = () =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) =>
+        (Number(c) ^ (Math.floor(Math.random() * 16) >> (Number(c) / 4))).toString(16),
+      );
+
+/**
+ * Ao abrir uma marcação, a visita inteira: todos os serviços do cliente marcados
+ * juntos. Se as horas não encaixarem em cadeia, edita-se só a marcação aberta.
+ */
+const prepararEdicao = (agendamento: Agendamento, daVisita: Agendamento[]) => {
+  const planeada = linhasDaVisita(daVisita.length > 0 ? daVisita : [agendamento]);
+  const marcacoes = planeada ? planeada.linhas : [agendamento];
+
+  return {
+    soEsta: planeada === null,
+    inicio: planeada ? planeada.inicio : agendamento.inicio,
+    ids: marcacoes.map((marcacao) => marcacao.id),
+    linhas: marcacoes.map(
+      (marcacao): LinhaServico => ({
+        chave: marcacao.id,
+        id: marcacao.id,
+        servicoId: marcacao.servicoId,
+        funcionarioId: marcacao.funcionarioId,
+        duracaoMinutos: marcacao.duracaoMinutos,
+      }),
+    ),
+  };
 };
 
 export default function AgendamentoModal({
@@ -69,42 +102,96 @@ export default function AgendamentoModal({
 }: Props) {
   const emEdicao = agendamento !== null;
   const funcionariosAtivos = funcionarios;
-  const servicosAtivos = servicos.filter(
-    (item) => item.ativo || item.id === agendamento?.servicoId,
+  // Um serviço desativado entretanto continua a aparecer nas visitas que já o têm.
+  const servicosDaVisita = new Set(
+    agendamento
+      ? [
+          agendamento.servicoId,
+          ...agendamentosDaSemana
+            .filter((item) => item.visitaId === agendamento.visitaId)
+            .map((item) => item.servicoId),
+        ]
+      : [],
   );
+  const servicosAtivos = servicos.filter((item) => item.ativo || servicosDaVisita.has(item.id));
 
   const [clienteId, setClienteId] = useState<string | null>(agendamento?.clienteId ?? null);
   const [nomeCliente, setNomeCliente] = useState(agendamento?.cliente ?? "");
   const [telefone, setTelefone] = useState(agendamento?.telefone ?? "");
   const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
 
+  // A visita já está na semana carregada, a não ser que se tenha vindo da pesquisa
+  // ou da ficha do cliente para outro dia; aí lê-se da base de dados.
+  const naSemana = agendamento
+    ? agendamentosDaSemana.some((item) => item.id === agendamento.id)
+    : false;
+  // Só ao abrir: depois quem manda é o que se muda na janela.
+  const [edicaoInicial] = useState(() =>
+    agendamento
+      ? prepararEdicao(
+          agendamento,
+          agendamentosDaSemana.filter((item) => item.visitaId === agendamento.visitaId),
+        )
+      : null,
+  );
+  const [aCarregarVisita, setACarregarVisita] = useState(Boolean(agendamento) && !naSemana);
+  const [soEsta, setSoEsta] = useState(edicaoInicial?.soEsta ?? false);
+  const [idsDaVisita, setIdsDaVisita] = useState<string[]>(edicaoInicial?.ids ?? []);
+
   const [data, setData] = useState(agendamento?.data ?? preDefinicao.data);
+  // Numa visita, começa quando começa o primeiro serviço dela.
   const [inicio, setInicio] = useState(
-    agendamento?.inicio ??
+    edicaoInicial?.inicio ??
       preDefinicao.inicio ??
       horarioDoDia(configuracoes, agendamento?.data ?? preDefinicao.data).inicio,
   );
   const [status, setStatus] = useState<StatusAgendamento>(agendamento?.status ?? "confirmado");
   const [observacoes, setObservacoes] = useState(agendamento?.observacoes ?? "");
 
-  const [linhas, setLinhas] = useState<LinhaServico[]>(() => [
-    {
-      chave: "1",
-      servicoId: agendamento?.servicoId ?? servicosAtivos[0]?.id ?? "",
-      funcionarioId:
-        agendamento?.funcionarioId ??
-        preDefinicao.funcionarioId ??
-        funcionariosAtivos[0]?.id ??
-        "",
-      duracaoMinutos: agendamento?.duracaoMinutos ?? servicosAtivos[0]?.duracaoMinutos ?? 60,
-      emParalelo: false,
-    },
-  ]);
+  const [linhas, setLinhas] = useState<LinhaServico[]>(
+    () =>
+      edicaoInicial?.linhas ?? [
+        {
+          chave: "1",
+          servicoId: servicosAtivos[0]?.id ?? "",
+          funcionarioId: preDefinicao.funcionarioId ?? funcionariosAtivos[0]?.id ?? "",
+          duracaoMinutos: servicosAtivos[0]?.duracaoMinutos ?? 60,
+        },
+      ],
+  );
 
   const [erro, setErro] = useState("");
   const [aGuardar, setAGuardar] = useState(false);
   const [confirmarCancelar, setConfirmarCancelar] = useState(false);
   const primeiroCampo = useRef<HTMLInputElement>(null);
+
+  // Vindo de outro dia (pesquisa, ficha do cliente): ler a visita da base de dados.
+  useEffect(() => {
+    if (!agendamento || naSemana) return;
+    let ativo = true;
+    api
+      .listarDaVisita(agendamento.visitaId)
+      .then((daVisita) => {
+        if (!ativo) return;
+        const edicao = prepararEdicao(agendamento, daVisita);
+        setSoEsta(edicao.soEsta);
+        setIdsDaVisita(edicao.ids);
+        setLinhas(edicao.linhas);
+        setInicio(edicao.inicio);
+      })
+      .catch((causa) => {
+        if (ativo) {
+          setErro(causa instanceof Error ? causa.message : "Não foi possível carregar a visita.");
+        }
+      })
+      .finally(() => {
+        if (ativo) setACarregarVisita(false);
+      });
+    return () => {
+      ativo = false;
+    };
+    // Só ao abrir a janela.
+  }, []);
 
   // Numa marcação nova começa-se pelo nome; numa existente, o cursor não vai para lá
   // (senão abria logo a lista de sugestões de clientes por cima do formulário).
@@ -154,7 +241,8 @@ export default function AgendamentoModal({
   const comoAgendamentos = useMemo<Agendamento[]>(
     () =>
       agenda.map((item, indice) => ({
-        id: `nova-${indice}`,
+        id: item.id ?? `nova-${indice}`,
+        visitaId: "esta-visita",
         clienteId: null,
         cliente: nomeCliente || "Esta visita",
         telefone: "",
@@ -175,11 +263,17 @@ export default function AgendamentoModal({
     [agenda, data, nomeCliente],
   );
 
+  /** O resto da agenda, sem os serviços da visita que se está a editar. */
+  const outrasMarcacoes = useMemo(() => {
+    const daVisita = new Set(idsDaVisita);
+    return agendamentosDaSemana.filter((item) => !daVisita.has(item.id));
+  }, [agendamentosDaSemana, idsDaVisita]);
+
   /** Primeiro problema encontrado em qualquer um dos serviços. */
   const problema = useMemo(() => {
     for (const [indice, item] of agenda.entries()) {
       const candidato = {
-        id: agendamento?.id,
+        id: item.id,
         funcionarioId: item.funcionarioId,
         data,
         inicio: item.inicio,
@@ -197,23 +291,14 @@ export default function AgendamentoModal({
       }
 
       const outrasLinhas = comoAgendamentos.filter((_, outro) => outro !== indice);
-      const conflito = encontrarConflito([...agendamentosDaSemana, ...outrasLinhas], candidato);
+      const conflito = encontrarConflito([...outrasMarcacoes, ...outrasLinhas], candidato);
       if (conflito) {
         return `${nome} às ${item.inicio}: ${quem} já tem ${conflito.cliente} das ${conflito.inicio} às ${conflito.fim}.`;
       }
     }
 
     return null;
-  }, [
-    agenda,
-    agendamento?.id,
-    agendamentosDaSemana,
-    ausencias,
-    comoAgendamentos,
-    data,
-    funcionarios,
-    servicos,
-  ]);
+  }, [agenda, ausencias, comoAgendamentos, data, funcionarios, outrasMarcacoes, servicos]);
 
   const precoTotal = agenda.reduce(
     (total, item) => total + (servicos.find((s) => s.id === item.servicoId)?.preco ?? 0),
@@ -253,7 +338,6 @@ export default function AgendamentoModal({
         servicoId: seguinte?.id ?? "",
         funcionarioId: ultima?.funcionarioId ?? funcionariosAtivos[0]?.id ?? "",
         duracaoMinutos: seguinte?.duracaoMinutos ?? 60,
-        emParalelo: false,
       },
     ]);
     setErro("");
@@ -268,7 +352,7 @@ export default function AgendamentoModal({
     for (const item of agenda) {
       const aviso = validarAgendamento(
         {
-          id: agendamento?.id,
+          id: item.id,
           funcionarioId: item.funcionarioId,
           data,
           inicio: item.inicio,
@@ -292,8 +376,6 @@ export default function AgendamentoModal({
     setAGuardar(true);
     setErro("");
 
-    const criados: Agendamento[] = [];
-
     try {
       let clienteFinalId = clienteId;
       let clienteNovo: Cliente | null = null;
@@ -313,9 +395,14 @@ export default function AgendamentoModal({
         await api.atualizarCliente(clienteFinalId, { telefone: telefone.trim() });
       }
 
-      if (agendamento) {
-        const item = agenda[0];
-        const guardado = await api.atualizarAgendamento(agendamento.id, {
+      // Serviços que estavam na visita e foram tirados na janela.
+      const removidos = idsDaVisita.filter((id) => !agenda.some((item) => item.id === id));
+
+      const guardados = await api.guardarVisita({
+        visitaId: agendamento?.visitaId ?? novoId(),
+        apagar: removidos,
+        marcacoes: agenda.map((item) => ({
+          id: item.id,
           clienteId: clienteFinalId,
           funcionarioId: item.funcionarioId,
           servicoId: item.servicoId,
@@ -325,44 +412,25 @@ export default function AgendamentoModal({
           status,
           telefone: telefone.trim(),
           observacoes: observacoes.trim(),
-        });
+        })),
+      });
 
-        onGuardado([guardado], clienteNovo);
-        return;
-      }
-
-      for (const item of agenda) {
-        criados.push(
-          await api.criarAgendamento({
-            clienteId: clienteFinalId,
-            funcionarioId: item.funcionarioId,
-            servicoId: item.servicoId,
-            data,
-            inicio: item.inicio,
-            duracaoMinutos: item.duracaoMinutos,
-            status,
-            telefone: telefone.trim(),
-            observacoes: observacoes.trim(),
-          }),
-        );
-      }
-
-      onGuardado(criados, clienteNovo);
+      onGuardado(guardados, clienteNovo, removidos);
     } catch (causa) {
-      // Se falhou a meio, desfaz o que já entrou para não ficar meia visita marcada.
-      await Promise.all(criados.map((item) => api.apagarAgendamento(item.id).catch(() => {})));
+      // A base de dados guarda tudo ou nada: não fica meia visita para desfazer.
       setErro(causa instanceof Error ? causa.message : "Não foi possível guardar a marcação.");
       setAGuardar(false);
     }
   };
 
-  /** Cancelar uma marcação é tirá-la da agenda. */
+  /** Cancelar é tirar da agenda a visita inteira (todos os serviços dela). */
   const cancelar = async () => {
     if (!agendamento) return;
     setAGuardar(true);
     try {
-      await api.apagarAgendamento(agendamento.id);
-      onApagado(agendamento.id);
+      const ids = idsDaVisita.length > 0 ? idsDaVisita : [agendamento.id];
+      await api.guardarVisita({ visitaId: agendamento.visitaId, marcacoes: [], apagar: ids });
+      onApagado(ids);
     } catch (causa) {
       setConfirmarCancelar(false);
       setErro(causa instanceof Error ? causa.message : "Não foi possível cancelar a marcação.");
@@ -462,20 +530,8 @@ export default function AgendamentoModal({
           </div>
 
           <div className="lista-servicos">
-            {agenda.map((item, indice) => (
+            {agenda.map((item) => (
               <div key={item.chave} className="linha-servico">
-                {indice > 0 ? (
-                  <label className="checkbox linha-paralelo">
-                    <input
-                      type="checkbox"
-                      checked={item.emParalelo}
-                      onChange={(evento) =>
-                        alterarLinha(item.chave, { emParalelo: evento.target.checked })
-                      }
-                    />
-                    à mesma hora que o anterior
-                  </label>
-                ) : null}
 
                 <div className="campos-servico">
                   <label>
@@ -540,7 +596,12 @@ export default function AgendamentoModal({
               </div>
             ))}
 
-            {emEdicao ? null : (
+            {soEsta ? (
+              <p className="dica">
+                Os serviços desta visita têm horas soltas, por isso aqui muda-se só este. Para
+                acrescentar outro, faz uma marcação nova.
+              </p>
+            ) : (
               <button type="button" className="ghost-button" onClick={acrescentarServico}>
                 + Acrescentar serviço
               </button>
@@ -612,12 +673,20 @@ export default function AgendamentoModal({
               <button type="button" className="ghost-button" onClick={onFechar}>
                 Fechar
               </button>
-              <button type="submit" className="primary-button" disabled={aGuardar}>
+              <button
+                type="submit"
+                className="primary-button"
+                disabled={aGuardar || aCarregarVisita}
+              >
                 {aGuardar
                   ? "A guardar..."
-                  : linhas.length > 1
-                    ? `Guardar ${linhas.length} marcações`
-                    : "Guardar marcação"}
+                  : aCarregarVisita
+                    ? "A carregar..."
+                    : emEdicao
+                      ? "Guardar alterações"
+                      : linhas.length > 1
+                        ? `Guardar ${linhas.length} marcações`
+                        : "Guardar marcação"}
               </button>
             </div>
           </div>
@@ -625,7 +694,7 @@ export default function AgendamentoModal({
 
         {confirmarCancelar && agendamento ? (
           <ConfirmarModal
-            titulo="Cancelar esta marcação?"
+            titulo={idsDaVisita.length > 1 ? "Cancelar esta visita?" : "Cancelar esta marcação?"}
             textoConfirmar="Sim, cancelar"
             textoAProcessar="A cancelar..."
             aProcessar={aGuardar}
@@ -637,7 +706,11 @@ export default function AgendamentoModal({
               <br />
               {dataPorExtenso(agendamento.data)} às {agendamento.inicio}
             </p>
-            <p>A marcação será removida da agenda e não poderá ser recuperada.</p>
+            <p>
+              {idsDaVisita.length > 1
+                ? `Os ${idsDaVisita.length} serviços desta visita saem da agenda e não podem ser recuperados. Para tirar só um, usa o × ao lado dele.`
+                : "A marcação será removida da agenda e não poderá ser recuperada."}
+            </p>
           </ConfirmarModal>
         ) : null}
       </div>

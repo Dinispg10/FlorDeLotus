@@ -78,35 +78,50 @@ export default function ContaView({ email, onAviso }: Props) {
 
         <label>
           Palavra-passe nova
-          <input
-            type={mostrar ? "text" : "password"}
-            autoComplete="new-password"
-            value={nova}
-            onChange={(evento) => {
-              setNova(evento.target.value);
-              setErro("");
-            }}
-            required
-          />
+          <span className="campo-password">
+            <input
+              type={mostrar ? "text" : "password"}
+              autoComplete="new-password"
+              value={nova}
+              onChange={(evento) => {
+                setNova(evento.target.value);
+                setErro("");
+              }}
+              required
+            />
+            <button
+              type="button"
+              className="mostrar-password"
+              onClick={() => setMostrar((atual) => !atual)}
+              aria-pressed={mostrar}
+            >
+              {mostrar ? "Esconder" : "Mostrar"}
+            </button>
+          </span>
         </label>
 
         <label>
           Repete a palavra-passe nova
-          <input
-            type={mostrar ? "text" : "password"}
-            autoComplete="new-password"
-            value={repetida}
-            onChange={(evento) => {
-              setRepetida(evento.target.value);
-              setErro("");
-            }}
-            required
-          />
-        </label>
-
-        <label className="checkbox">
-          <input type="checkbox" checked={mostrar} onChange={(evento) => setMostrar(evento.target.checked)} />
-          Mostrar o que estou a escrever
+          <span className="campo-password">
+            <input
+              type={mostrar ? "text" : "password"}
+              autoComplete="new-password"
+              value={repetida}
+              onChange={(evento) => {
+                setRepetida(evento.target.value);
+                setErro("");
+              }}
+              required
+            />
+            <button
+              type="button"
+              className="mostrar-password"
+              onClick={() => setMostrar((atual) => !atual)}
+              aria-pressed={mostrar}
+            >
+              {mostrar ? "Esconder" : "Mostrar"}
+            </button>
+          </span>
         </label>
 
         {erro ? (

@@ -641,7 +641,10 @@ export default function AgendaView({
                 {distribuirEmFaixas(coluna.marcacoes).map(({ marcacao, faixa, totalFaixas }) => {
                   const topo =
                     (minutosDesdeMeiaNoite(marcacao.inicio) - aberturaMin) * alturaMinuto;
-                  const altura = Math.max(marcacao.duracaoMinutos * alturaMinuto, 30);
+                  // 3px a menos: uma marcação que acaba às 14:20 e outra que começa às
+                  // 14:20 ficam separadas por uma folga, em vez de coladas. Sem altura
+                  // mínima grande, para uma marcação curta não invadir a seguinte.
+                  const altura = Math.max(marcacao.duracaoMinutos * alturaMinuto - 3, 14);
                   const compacto = altura < BLOCO_COMPACTO;
                   // Com marcações lado a lado não há largura para a hora de fim.
                   const estreito = totalFaixas > 1;

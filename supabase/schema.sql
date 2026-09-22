@@ -37,6 +37,8 @@ CREATE TABLE servicos (
 
 CREATE TABLE agendamentos (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  -- Os serviços marcados juntos (corte + madeixas...) partilham a visita.
+  visita_id UUID NOT NULL DEFAULT gen_random_uuid(),
   -- Ao apagar um cliente ou uma funcionária, as marcações antigas ficam (para as
   -- estatísticas) sem essa ligação. A app só deixa apagar quem já não tem marcações
   -- por acontecer.
@@ -66,7 +68,7 @@ CREATE TABLE agendamentos (
   CONSTRAINT agendamentos_sem_sobreposicao EXCLUDE USING gist (
     funcionario_id WITH =,
     tstzrange(data_hora_inicio, data_hora_fim) WITH &&
-  )
+  ) DEFERRABLE INITIALLY IMMEDIATE
 );
 
 CREATE TABLE ausencias (
@@ -143,6 +145,85 @@ ON agendamentos FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_users_manage_logs_sms"
 ON logs_sms FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
+
+/* ------------------------------------------------------------------ */
+/* Visitas: vários serviços guardados de uma só vez                    */
+/* ------------------------------------------------------------------ */
+
+CREATE INDEX IF NOT EXISTS idx_agendamentos_visita ON agendamentos(visita_id);
+
+-- Guardar uma visita inteira (ver migrations/014_visitas.sql).
+--
+-- p_marcacoes: lista de serviços. Os que trazem "id" são mudados; os outros são
+-- criados. p_apagar: ids de serviços da visita que saem. Corre com as permissões de
+-- quem chama (as regras de acesso aplicam-se).
+
+CREATE OR REPLACE FUNCTION public.guardar_visita(
+  p_visita_id UUID,
+  p_marcacoes JSONB,
+  p_apagar UUID[] DEFAULT '{}'
+)
+RETURNS SETOF public.agendamentos
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
+DECLARE
+  m JSONB;
+  mudadas INTEGER;
+BEGIN
+  SET CONSTRAINTS public.agendamentos_sem_sobreposicao DEFERRED;
+
+  DELETE FROM public.agendamentos
+  WHERE id = ANY (p_apagar) AND visita_id = p_visita_id;
+
+  FOR m IN SELECT * FROM jsonb_array_elements(p_marcacoes) LOOP
+    IF m ? 'id' AND m->>'id' IS NOT NULL THEN
+      UPDATE public.agendamentos SET
+        visita_id = p_visita_id,
+        cliente_id = (m->>'cliente_id')::uuid,
+        funcionario_id = (m->>'funcionario_id')::uuid,
+        servico_id = (m->>'servico_id')::uuid,
+        data_hora_inicio = (m->>'data_hora_inicio')::timestamptz,
+        data_hora_fim = (m->>'data_hora_fim')::timestamptz,
+        duracao_minutos = (m->>'duracao_minutos')::integer,
+        status = m->>'status',
+        telefone_cliente = m->>'telefone_cliente',
+        observacoes = m->>'observacoes'
+      WHERE id = (m->>'id')::uuid;
+
+      GET DIAGNOSTICS mudadas = ROW_COUNT;
+      IF mudadas = 0 THEN
+        RAISE EXCEPTION 'Um dos serviços desta visita já não existe (foi apagado noutro aparelho).'
+          USING ERRCODE = 'P0002';
+      END IF;
+    ELSE
+      INSERT INTO public.agendamentos (
+        visita_id, cliente_id, funcionario_id, servico_id, data_hora_inicio,
+        data_hora_fim, duracao_minutos, status, telefone_cliente, observacoes
+      ) VALUES (
+        p_visita_id,
+        (m->>'cliente_id')::uuid,
+        (m->>'funcionario_id')::uuid,
+        (m->>'servico_id')::uuid,
+        (m->>'data_hora_inicio')::timestamptz,
+        (m->>'data_hora_fim')::timestamptz,
+        (m->>'duracao_minutos')::integer,
+        m->>'status',
+        m->>'telefone_cliente',
+        m->>'observacoes'
+      );
+    END IF;
+  END LOOP;
+
+  -- Verificar as sobreposições já aqui, para o erro vir com a mensagem certa.
+  SET CONSTRAINTS public.agendamentos_sem_sobreposicao IMMEDIATE;
+
+  RETURN QUERY SELECT * FROM public.agendamentos WHERE visita_id = p_visita_id;
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.guardar_visita(UUID, JSONB, UUID[]) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.guardar_visita(UUID, JSONB, UUID[]) TO authenticated;
 
 /* ------------------------------------------------------------------ */
 /* Preço guardado em cada marcação (ver migrations/013)                */

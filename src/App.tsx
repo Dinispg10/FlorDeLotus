@@ -113,7 +113,8 @@ function App() {
   );
 
   const aoGuardar = useCallback(
-    (agendamentos: Agendamento[], clienteNovo: Cliente | null) => {
+    (agendamentos: Agendamento[], clienteNovo: Cliente | null, removidos: string[]) => {
+      removidos.forEach(salao.removerDaLista);
       agendamentos.forEach(salao.guardarNaLista);
 
       if (clienteNovo) {
@@ -125,19 +126,21 @@ function App() {
       if (agendamentos[0]) setDia(agendamentos[0].data);
       setModal(null);
       setAviso(
-        agendamentos.length > 1
-          ? `${agendamentos.length} marcações guardadas.`
-          : "Marcação guardada.",
+        modal?.agendamento
+          ? "Alterações guardadas."
+          : agendamentos.length > 1
+            ? `${agendamentos.length} marcações guardadas.`
+            : "Marcação guardada.",
       );
     },
-    [salao],
+    [modal?.agendamento, salao],
   );
 
   const aoApagar = useCallback(
-    (id: string) => {
-      salao.removerDaLista(id);
+    (ids: string[]) => {
+      ids.forEach(salao.removerDaLista);
       setModal(null);
-      setAviso("Marcação cancelada.");
+      setAviso(ids.length > 1 ? "Visita cancelada." : "Marcação cancelada.");
     },
     [salao],
   );

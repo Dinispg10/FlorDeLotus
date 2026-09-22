@@ -11,6 +11,8 @@ import {
   type Visita,
 } from "../lib/mensagens";
 import { dentroDoTauri } from "./BotoesJanela";
+import SeletorTelemovel from "./SeletorTelemovel";
+import { useEcraPequeno } from "../hooks/useEcraPequeno";
 import type { Agendamento, Configuracoes, Funcionario, Servico } from "../lib/types";
 
 type Props = {
@@ -44,6 +46,7 @@ export default function LembretesView({
   const [modelo, setModelo] = useState(configuracoes.modeloLembrete);
   const [aGuardarModelo, setAGuardarModelo] = useState(false);
   const tatil = useMemo(ecraTatil, []);
+  const telemovel = useEcraPequeno();
 
   const carregar = useCallback(async () => {
     setACarregar(true);
@@ -172,63 +175,75 @@ export default function LembretesView({
   };
 
   const amanha = somarDias(hoje(), 1);
+  const resumo =
+    visitas.length === 0
+      ? "Sem marcações neste dia"
+      : `${visitas.length} ${visitas.length === 1 ? "cliente" : "clientes"} · ${
+          porAvisar.length === 0 ? "todos avisados" : `${porAvisar.length} por avisar`
+        }`;
+
+  const quando = dia === amanha ? "Amanhã" : dia === hoje() ? "Hoje" : "";
 
   return (
     <section className="pagina-lista">
+      {telemovel ? (
+        <SeletorTelemovel
+          titulo={dataPorExtenso(dia)}
+          subtitulo={quando ? `${quando} · ${resumo}` : resumo}
+          dia={dia}
+          onEscolherDia={setDia}
+          onAnterior={() => setDia(somarDias(dia, -1))}
+          onSeguinte={() => setDia(somarDias(dia, 1))}
+          rotuloAnterior="Dia anterior"
+          rotuloSeguinte="Dia seguinte"
+        />
+      ) : null}
+
       <div className="cartao">
         <div className="cartao-topo">
           <div>
             <h2>Lembretes</h2>
-            <p className="subtitulo">
-              {visitas.length === 0
-                ? "Sem marcações neste dia"
-                : `${visitas.length} ${visitas.length === 1 ? "cliente" : "clientes"} · ${
-                    porAvisar.length === 0 ? "todos avisados" : `${porAvisar.length} por avisar`
-                  }`}
-            </p>
+            {telemovel ? null : <p className="subtitulo">{resumo}</p>}
           </div>
 
-          <div className="acoes-registo">
-            <div className="navegador-data">
-              <button
-                type="button"
-                className="seta"
-                onClick={() => setDia(somarDias(dia, -1))}
-                aria-label="Dia anterior"
-              >
-                ‹
-              </button>
-              <label className="data-lembretes">
-                <span>{dataPorExtenso(dia)}</span>
-                <input
-                  type="date"
-                  value={dia}
-                  onChange={(evento) => evento.target.value && setDia(evento.target.value)}
-                  onClick={(evento) => {
-                    try {
-                      evento.currentTarget.showPicker();
-                    } catch {
-                      // browsers antigos abrem o calendário sozinhos
-                    }
-                  }}
-                  aria-label="Escolher o dia"
-                />
-              </label>
-              <button
-                type="button"
-                className="seta"
-                onClick={() => setDia(somarDias(dia, 1))}
-                aria-label="Dia seguinte"
-              >
-                ›
-              </button>
+          {telemovel ? null : (
+            <div className="acoes-registo">
+              <div className="navegador-data">
+                <button
+                  type="button"
+                  className="seta"
+                  onClick={() => setDia(somarDias(dia, -1))}
+                  aria-label="Dia anterior"
+                >
+                  ‹
+                </button>
+                <label className="data-lembretes">
+                  <span>{dataPorExtenso(dia)}</span>
+                  <input
+                    type="date"
+                    value={dia}
+                    onChange={(evento) => evento.target.value && setDia(evento.target.value)}
+                    onClick={(evento) => {
+                      try {
+                        evento.currentTarget.showPicker();
+                      } catch {
+                        // browsers antigos abrem o calendário sozinhos
+                      }
+                    }}
+                    aria-label="Escolher o dia"
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="seta"
+                  onClick={() => setDia(somarDias(dia, 1))}
+                  aria-label="Dia seguinte"
+                >
+                  ›
+                </button>
+              </div>
             </div>
-            {dia !== amanha ? (
-              <button type="button" className="ghost-button" onClick={() => setDia(amanha)}>
-                Amanhã
-              </button>
-            ) : null}
-          </div>
+          )}
         </div>
 
         <div className="caixa-modelo">

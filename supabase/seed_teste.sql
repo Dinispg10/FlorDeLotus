@@ -93,6 +93,8 @@ marcacoes(cliente, funcionaria, servico, dia, hora, duracao, estado) AS (
     ('Marta Silva',    'Ana',   'Manicure',           3, '14:30',  40, 'confirmado'),
     ('Joana Pereira',  'Ana',   'Pedicure',           4, '10:00',  50, 'pendente'),
     ('Clara Mendes',   'Ana',   'Unhas de gel',       5, '11:30',  75, 'confirmado'),
+    -- Visitas com dois serviços seguidos (para testar a edição de visitas).
+    ('Inês Rocha',     'Ana',   'Manicure',           0, '16:00',  40, 'confirmado'),
 
     -- Carla (massagem)
     ('Beatriz Nunes',  'Carla', 'Massagem relaxante', 0, '15:30',  60, 'confirmado'),
@@ -100,7 +102,8 @@ marcacoes(cliente, funcionaria, servico, dia, hora, duracao, estado) AS (
     ('Clara Mendes',   'Carla', 'Massagem relaxante', 2, '15:00',  60, 'confirmado'),
     ('Rita Costa',     'Carla', 'Massagem de costas', 3, '09:30',  30, 'confirmado'),
     ('Helena Dias',    'Carla', 'Massagem relaxante', 4, '16:00',  60, 'confirmado'),
-    ('Marta Silva',    'Carla', 'Massagem de costas', 5, '10:00',  30, 'confirmado')
+    ('Marta Silva',    'Carla', 'Massagem de costas', 5, '10:00',  30, 'confirmado'),
+    ('Joana Pereira',  'Sofia', 'Tratamento facial',  1, '11:15',  45, 'confirmado')
 )
 INSERT INTO agendamentos (
   cliente_id, funcionario_id, servico_id,
@@ -133,5 +136,19 @@ JOIN LATERAL (
 JOIN LATERAL (
   SELECT id FROM servicos WHERE nome = m.servico ORDER BY criado_em LIMIT 1
 ) s ON TRUE;
+
+-- Os serviços do mesmo cliente no mesmo dia ficam na mesma visita (como faz a app ao
+-- marcar vários de uma vez). A Inês (madeixas + manicure) e a Joana (corte + facial)
+-- ficam encadeadas; a Beatriz (manhã e tarde) fica com "horas soltas".
+UPDATE agendamentos AS a
+SET visita_id = (
+  SELECT b.id FROM agendamentos AS b
+  WHERE b.cliente_id = a.cliente_id
+    AND (b.data_hora_inicio AT TIME ZONE 'Europe/Lisbon')::date
+        = (a.data_hora_inicio AT TIME ZONE 'Europe/Lisbon')::date
+  ORDER BY b.data_hora_inicio, b.id
+  LIMIT 1
+)
+WHERE a.observacoes = 'Dados de teste' AND a.cliente_id IS NOT NULL;
 
 COMMIT;

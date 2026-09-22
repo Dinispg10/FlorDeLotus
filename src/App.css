@@ -54,6 +54,19 @@ h3 {
   color: #111827;
 }
 
+/* Caixas de marcar e opções no roxo da app, em vez do azul do sistema. */
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--roxo-vivo);
+}
+
+/* O Windows (Edge) põe um "olho" nas caixas de palavra-passe; a app já tem o seu botão
+   Mostrar/Esconder, por isso esconde-se o do sistema. */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
 /* ---------------- Login ---------------- */
 
 .login-shell {
@@ -165,7 +178,8 @@ h3 {
   display: block;
 }
 
-.campo-password input {
+.campo-password input,
+.booking-form .campo-password input {
   padding-right: 5.5rem;
 }
 
@@ -1738,9 +1752,6 @@ button.cabecalho-coluna:hover {
   white-space: nowrap;
 }
 
-.linha-paralelo {
-  font-size: 0.74rem;
-}
 
 /* ---------------- Modal ---------------- */
 
@@ -3124,8 +3135,26 @@ button.cabecalho-coluna:hover {
     font-size: 1.3rem;
   }
 
+  /* Estatísticas: Dia/Semana/Mês a toda a largura e, por baixo, o seletor grande
+     igual ao da agenda. */
   .filtros-estatisticas {
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .filtros-estatisticas .alternador {
+    display: flex;
+    width: 100%;
+  }
+
+  .filtros-estatisticas .alternador button {
+    flex: 1;
+  }
+
+  /* Lembretes: o seletor grande por cima do cartão. */
+  .pagina-lista > .cabecalho-dia-telemovel {
+    margin-bottom: 12px;
   }
 
   .rotulo-estatisticas {
@@ -3198,12 +3227,6 @@ button.cabecalho-coluna:hover {
   max-width: 420px;
 }
 
-.form-conta .checkbox {
-  flex-direction: row;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-}
 
 .form-conta h3 {
   margin: 8px 0 0;

@@ -14,6 +14,8 @@ import {
   type TipoPeriodo,
 } from "../lib/estatisticas";
 import type { Agendamento, Ausencia, Configuracoes, Funcionario, Servico } from "../lib/types";
+import SeletorTelemovel from "./SeletorTelemovel";
+import { useEcraPequeno } from "../hooks/useEcraPequeno";
 
 type Props = {
   configuracoes: Configuracoes;
@@ -182,7 +184,15 @@ function GraficoEvolucao({ pontos, titulo }: { pontos: Ponto[]; titulo: string }
   );
 }
 
+/** Por baixo do período, no telemóvel, quando ele inclui o dia de hoje. */
+const PERIODO_ATUAL: Record<TipoPeriodo, string> = {
+  dia: "Hoje",
+  semana: "Esta semana",
+  mes: "Este mês",
+};
+
 export default function EstatisticasView({ configuracoes, funcionarios, servicos, onErro }: Props) {
+  const telemovel = useEcraPequeno();
   const [tipo, setTipo] = useState<TipoPeriodo>("semana");
   const [referencia, setReferencia] = useState(hoje());
   const [marcacoes, setMarcacoes] = useState<Agendamento[]>([]);
@@ -266,25 +276,38 @@ export default function EstatisticasView({ configuracoes, funcionarios, servicos
           ))}
         </div>
 
-        <div className="navegador-data">
-          <button
-            type="button"
-            className="seta"
-            onClick={() => setReferencia(moverPeriodo(tipo, referencia, -1))}
-            aria-label="Período anterior"
-          >
-            ‹
-          </button>
-          <span className="rotulo-periodo rotulo-estatisticas">{periodo.rotulo}</span>
-          <button
-            type="button"
-            className="seta"
-            onClick={() => setReferencia(moverPeriodo(tipo, referencia, 1))}
-            aria-label="Período seguinte"
-          >
-            ›
-          </button>
-        </div>
+        {telemovel ? (
+          <SeletorTelemovel
+            titulo={periodo.rotulo}
+            subtitulo={incluiHoje ? PERIODO_ATUAL[tipo] : undefined}
+            dia={referencia}
+            onEscolherDia={setReferencia}
+            onAnterior={() => setReferencia(moverPeriodo(tipo, referencia, -1))}
+            onSeguinte={() => setReferencia(moverPeriodo(tipo, referencia, 1))}
+            rotuloAnterior="Período anterior"
+            rotuloSeguinte="Período seguinte"
+          />
+        ) : (
+          <div className="navegador-data">
+            <button
+              type="button"
+              className="seta"
+              onClick={() => setReferencia(moverPeriodo(tipo, referencia, -1))}
+              aria-label="Período anterior"
+            >
+              ‹
+            </button>
+            <span className="rotulo-periodo rotulo-estatisticas">{periodo.rotulo}</span>
+            <button
+              type="button"
+              className="seta"
+              onClick={() => setReferencia(moverPeriodo(tipo, referencia, 1))}
+              aria-label="Período seguinte"
+            >
+              ›
+            </button>
+          </div>
+        )}
 
         {!incluiHoje ? (
           <button type="button" className="ghost-button" onClick={() => setReferencia(hoje())}>

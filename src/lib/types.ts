@@ -34,6 +34,8 @@ export const ROTULO_STATUS: Record<StatusAgendamento, string> = {
 
 export type Agendamento = {
   id: string;
+  /** Os serviços marcados juntos (corte + madeixas...) partilham a visita. */
+  visitaId: string;
   clienteId: string | null;
   cliente: string;
   telefone: string;

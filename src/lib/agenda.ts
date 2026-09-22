@@ -76,33 +76,41 @@ export const ausenciaQueBloqueia = (
 
 export type ServicoPlaneado = {
   duracaoMinutos: number;
-  /** Acontece ao mesmo tempo que o anterior, em vez de vir a seguir. */
-  emParalelo: boolean;
 };
 
 /**
- * Dá horas a uma visita com vários serviços: por omissão vêm em cadeia, e os
- * marcados como paralelos começam à mesma hora que o serviço anterior. O que vier
- * depois de um par em paralelo arranca quando o mais demorado dos dois acabar.
+ * Dá horas a uma visita com vários serviços: vêm sempre um a seguir ao outro (a
+ * cliente só está num sítio de cada vez).
  */
 export const encadearServicos = <T extends ServicoPlaneado>(
   inicio: string,
   linhas: T[],
 ): (T & { inicio: string; fim: string })[] => {
-  let inicioAnterior = inicio;
-  let fimMaisTarde = inicio;
+  let comeca = inicio;
 
-  return linhas.map((linha, indice) => {
-    const comeca = indice === 0 ? inicio : linha.emParalelo ? inicioAnterior : fimMaisTarde;
+  return linhas.map((linha) => {
     const acaba = somarMinutos(comeca, linha.duracaoMinutos);
-
-    inicioAnterior = comeca;
-    if (minutosDesdeMeiaNoite(acaba) > minutosDesdeMeiaNoite(fimMaisTarde)) {
-      fimMaisTarde = acaba;
-    }
-
-    return { ...linha, inicio: comeca, fim: acaba };
+    const comHoras = { ...linha, inicio: comeca, fim: acaba };
+    comeca = acaba;
+    return comHoras;
   });
+};
+
+/**
+ * Volta a pôr uma visita já guardada na forma de linhas encadeadas, para se poder
+ * editar. Devolve null se as horas não encaixam em cadeia (um intervalo entre
+ * serviços, ou dois à mesma hora): aí edita-se só o serviço aberto.
+ */
+export const linhasDaVisita = (marcacoes: Agendamento[]) => {
+  const ordenadas = [...marcacoes].sort((a, b) => a.inicioMs - b.inicioMs || a.fimMs - b.fimMs);
+  if (ordenadas.length === 0) return null;
+
+  const encaixam = ordenadas.every(
+    (marcacao, indice) => indice === 0 || marcacao.inicioMs === ordenadas[indice - 1].fimMs,
+  );
+  if (!encaixam) return null;
+
+  return { inicio: ordenadas[0].inicio, linhas: ordenadas };
 };
 
 const paraHora = (minutos: number) =>

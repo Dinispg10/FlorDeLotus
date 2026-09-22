@@ -30,10 +30,11 @@ Supabase, por isso vários computadores do salão veem a mesma agenda.
   cancelar tira-a da agenda (pede confirmação antes). O ✕ em cada bloco cancela sem
   abrir a marcação.
 - **Visitas com vários serviços**: na mesma janela acrescentam-se serviços, cada um com
-  a sua funcionária e duração. Por omissão vêm em cadeia (corte às 10:00, coloração às
-  11:00); marcando "à mesma hora que o anterior" ficam em simultâneo, para casos como
-  manicure enquanto a cor atua. Guarda tudo de uma vez e, se algum falhar, desfaz os
-  que já tinham entrado.
+  a sua funcionária e duração. Vêm sempre um a seguir ao outro (corte às 10:00,
+  coloração às 11:00), porque a cliente só está num sítio de cada vez. Ao abrir uma
+  marcação, aparece a visita inteira: dá para acrescentar ou tirar serviços, e o que vem
+  a seguir anda sozinho. A base de dados
+  guarda a visita de uma só vez (`migrations/014_visitas.sql`): ou fica tudo, ou nada.
 - **Sem sobreposições**: a app avisa antes de guardar e a base de dados recusa
   marcações sobrepostas para a mesma funcionária (ver `supabase/migrations`).
 - **Horário do salão dia a dia** (página Definições): cada dia da semana tem as suas horas
@@ -66,7 +67,7 @@ Supabase, por isso vários computadores do salão veem a mesma agenda.
      sobreposições e as configurações base. É o único ficheiro preciso numa base
      de dados nova.
    - `supabase/seed_teste.sql` — opcional, enche a semana atual com dados de teste
-     (4 funcionárias, 11 serviços, 10 clientes, 33 marcações) para experimentares.
+     (4 funcionárias, 11 serviços, 10 clientes, 35 marcações) para experimentares.
      Num salão a sério salta este passo e cria as funcionárias e serviços na app.
    - Para **recomeçar do zero** numa base de dados já usada: `supabase/reset.sql`
      (apaga todas as tabelas) e depois outra vez o `schema.sql`.
