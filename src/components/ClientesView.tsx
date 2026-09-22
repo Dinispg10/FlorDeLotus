@@ -85,7 +85,7 @@ export default function ClientesView({
       <div className="cartao">
         <div className="cartao-topo">
           <div>
-            <h2>Clientes ({visiveis.length})</h2>
+            <h2>Clientes</h2>
             <p className="subtitulo">
               As fichas também são criadas automaticamente ao marcar, quando o nome ainda não existe.
             </p>

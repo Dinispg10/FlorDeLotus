@@ -20,6 +20,7 @@ import {
   ROTULO_AUSENCIA,
   ROTULO_STATUS,
   type Agendamento,
+  type Cliente,
   type Ausencia,
   type Configuracoes,
   type Funcionario,
@@ -27,6 +28,7 @@ import {
   type StatusAgendamento,
 } from "../lib/types";
 import type { PreDefinicao } from "./AgendamentoModal";
+import PesquisaMarcacoes from "./PesquisaMarcacoes";
 
 /**
  * Espaço por hora, em pixels por minuto. O salão escolhe o nível com os botões
@@ -103,6 +105,7 @@ type Props = {
   onAbrirNovo: (pre: PreDefinicao) => void;
   onAbrirExistente: (agendamento: Agendamento) => void;
   onPedirCancelamento: (agendamento: Agendamento) => void;
+  clientes: Cliente[];
 };
 
 export default function AgendaView({
@@ -122,6 +125,7 @@ export default function AgendaView({
   onAbrirNovo,
   onAbrirExistente,
   onPedirCancelamento,
+  clientes,
 }: Props) {
   const ativas = funcionarios;
   const funcionaria = funcionarios.find((item) => item.id === funcionariaSelecionada) ?? null;
@@ -384,6 +388,15 @@ export default function AgendaView({
         </div>
 
         <div className="acoes-agenda">
+          <PesquisaMarcacoes
+            clientes={clientes}
+            funcionarios={funcionarios}
+            servicos={servicos}
+            onEscolher={(marcacao) => {
+              onMudarDia(marcacao.data);
+              onAbrirExistente(marcacao);
+            }}
+          />
           {!emLista ? (
             <div className="zoom-agenda" title="Espaço por hora">
               <button

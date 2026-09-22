@@ -58,8 +58,11 @@ export default function ClienteModal({
   }, [carregarHistorico]);
 
   const resumo = useMemo(() => {
-    const precoDe = (servicoId: string) =>
-      servicos.find((servico) => servico.id === servicoId)?.preco ?? 0;
+    // O preço guardado em cada marcação (o que se cobrou), não o da tabela de hoje.
+    const precoDe = (marcacao: Agendamento) =>
+      marcacao.preco ??
+      servicos.find((servico) => servico.id === marcacao.servicoId)?.preco ??
+      0;
 
     // O histórico vem do mais recente para o mais antigo.
     const agora = Date.now();
@@ -69,7 +72,7 @@ export default function ClienteModal({
     return {
       // Uma visita é um dia: três serviços na mesma ida ao salão contam uma vez.
       visitas: new Set(passadas.map((item) => item.data)).size,
-      gasto: passadas.reduce((total, item) => total + precoDe(item.servicoId), 0),
+      gasto: passadas.reduce((total, item) => total + precoDe(item), 0),
       ultima: passadas[0] ?? null,
       proxima: futuras[futuras.length - 1] ?? null,
     };
@@ -233,7 +236,7 @@ export default function ClienteModal({
                       </span>
 
                       <span className="historico-servico">
-                        <strong>{servico?.nome ?? "Serviço removido"}</strong>
+                        <strong>{marcacao.servicoNome || servico?.nome || "Serviço removido"}</strong>
                         {funcionaria ? (
                           <em>
                             <span

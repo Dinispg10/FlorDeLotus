@@ -97,6 +97,9 @@ type RawAgendamento = {
   telefone_cliente: string | null;
   observacoes: string | null;
   lembrete_enviado: boolean | null;
+  // Só existem depois da migração 013.
+  preco?: number | string | null;
+  servico_nome?: string | null;
   clientes?: { nome: string | null; telefone: string | null } | null;
 };
 
@@ -141,6 +144,8 @@ const paraAgendamento = (item: RawAgendamento): Agendamento => {
     status: item.status === "pendente" ? "pendente" : "confirmado",
     observacoes: item.observacoes ?? "",
     lembreteEnviado: item.lembrete_enviado ?? false,
+    preco: item.preco === null || item.preco === undefined ? null : Number(item.preco),
+    servicoNome: item.servico_nome ?? "",
     inicioMs: inicio.getTime(),
     fimMs: fim.getTime(),
   };
@@ -341,8 +346,9 @@ export const apagarCliente = async (cliente: Cliente) => {
 /* Agendamentos                                                      */
 /* ---------------------------------------------------------------- */
 
-const SELECT_AGENDAMENTO =
-  "id, cliente_id, funcionario_id, servico_id, data_hora_inicio, data_hora_fim, duracao_minutos, status, telefone_cliente, observacoes, lembrete_enviado, clientes(nome, telefone)";
+// "*" em vez da lista de colunas: assim a app funciona antes e depois de a
+// migração 013 (preço guardado em cada marcação) ter corrido.
+const SELECT_AGENDAMENTO = "*, clientes(nome, telefone)";
 
 /** Carrega os agendamentos entre duas datas locais (inclusive). */
 export const listarAgendamentos = async (
@@ -366,6 +372,21 @@ export const listarAgendamentos = async (
 };
 
 /** Histórico completo de um cliente, do mais recente para o mais antigo. */
+/** As próximas marcações (ainda por acabar) de vários clientes, da mais cedo para a mais tarde. */
+export const proximasMarcacoesDe = async (clienteIds: string[]): Promise<Agendamento[]> => {
+  if (clienteIds.length === 0) return [];
+  const { data, error } = await client()
+    .from("agendamentos")
+    .select(SELECT_AGENDAMENTO)
+    .in("cliente_id", clienteIds)
+    .gte("data_hora_fim", new Date().toISOString())
+    .order("data_hora_inicio", { ascending: true })
+    .limit(60);
+
+  falhar("Não foi possível procurar as marcações", error);
+  return (data ?? []).map((item) => paraAgendamento(item as unknown as RawAgendamento));
+};
+
 export const listarAgendamentosDoCliente = async (clienteId: string): Promise<Agendamento[]> => {
   const { data, error } = await client()
     .from("agendamentos")

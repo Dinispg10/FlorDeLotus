@@ -49,6 +49,10 @@ export type Agendamento = {
   observacoes: string;
   /** Já foi avisado deste horário? */
   lembreteEnviado: boolean;
+  /** Preço do serviço guardado na marcação (null antes da migração 013) */
+  preco: number | null;
+  /** Nome do serviço guardado na marcação ("" antes da migração 013) */
+  servicoNome: string;
   /** Instante de início em milissegundos, para ordenar e detetar sobreposições */
   inicioMs: number;
   fimMs: number;

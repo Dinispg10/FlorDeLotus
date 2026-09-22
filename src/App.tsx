@@ -248,6 +248,7 @@ function App() {
             onEscolherFuncionaria={escolherFuncionaria}
             onAbrirNovo={abrirNovo}
             onAbrirExistente={abrirExistente}
+            clientes={salao.clientes}
           />
         ) : separador === "agenda" ? (
           <AgendaView
@@ -267,6 +268,7 @@ function App() {
             onAbrirNovo={abrirNovo}
             onAbrirExistente={abrirExistente}
             onPedirCancelamento={setACancelar}
+            clientes={salao.clientes}
           />
         ) : separador === "lembretes" ? (
           <LembretesView

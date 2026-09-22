@@ -43,6 +43,10 @@ CREATE TABLE agendamentos (
   cliente_id UUID REFERENCES clientes(id) ON DELETE SET NULL,
   funcionario_id UUID REFERENCES funcionarios(id) ON DELETE SET NULL,
   servico_id UUID REFERENCES servicos(id),
+  -- Preço e nome do serviço no momento da marcação, como numa fatura (ver os
+  -- gatilhos mais abaixo): mudar o preço do serviço não mexe no que já passou.
+  preco NUMERIC(10, 2),
+  servico_nome TEXT,
   data_hora_inicio TIMESTAMPTZ NOT NULL,
   data_hora_fim TIMESTAMPTZ NOT NULL,
   duracao_minutos INTEGER DEFAULT NULL,
@@ -139,6 +143,56 @@ ON agendamentos FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_users_manage_logs_sms"
 ON logs_sms FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
+
+/* ------------------------------------------------------------------ */
+/* Preço guardado em cada marcação (ver migrations/013)                */
+/* ------------------------------------------------------------------ */
+
+-- Ao marcar, ou ao trocar o serviço de uma marcação, copia-se o preço e o nome.
+-- Editar outra coisa (hora, observações...) não toca no preço guardado.
+CREATE OR REPLACE FUNCTION public.copiar_preco_do_servico()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
+BEGIN
+  IF TG_OP = 'INSERT' OR NEW.servico_id IS DISTINCT FROM OLD.servico_id THEN
+    SELECT s.preco, s.nome INTO NEW.preco, NEW.servico_nome
+    FROM public.servicos AS s
+    WHERE s.id = NEW.servico_id;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS copiar_preco_ao_marcar ON agendamentos;
+CREATE TRIGGER copiar_preco_ao_marcar
+BEFORE INSERT OR UPDATE OF servico_id ON agendamentos
+FOR EACH ROW EXECUTE FUNCTION public.copiar_preco_do_servico();
+
+-- Quando a gerente muda o preço ou o nome de um serviço, as marcações de hoje em
+-- diante acompanham; as que já passaram ficam como estavam.
+CREATE OR REPLACE FUNCTION public.atualizar_marcacoes_futuras()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
+BEGIN
+  IF NEW.preco IS DISTINCT FROM OLD.preco OR NEW.nome IS DISTINCT FROM OLD.nome THEN
+    UPDATE public.agendamentos
+    SET preco = NEW.preco, servico_nome = NEW.nome
+    WHERE servico_id = NEW.id
+      AND data_hora_inicio >= date_trunc('day', now() AT TIME ZONE 'Europe/Lisbon')
+                              AT TIME ZONE 'Europe/Lisbon';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS acompanhar_preco_novo ON servicos;
+CREATE TRIGGER acompanhar_preco_novo
+AFTER UPDATE OF preco, nome ON servicos
+FOR EACH ROW EXECUTE FUNCTION public.atualizar_marcacoes_futuras();
 
 /* ------------------------------------------------------------------ */
 /* Papéis: gerente e funcionária (ver migrations/012_papeis.sql)       */

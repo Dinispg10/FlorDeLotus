@@ -167,6 +167,8 @@ export default function AgendamentoModal({
         status: "confirmado",
         observacoes: "",
         lembreteEnviado: false,
+        preco: null,
+        servicoNome: "",
         inicioMs: combinarDataHora(data, item.inicio).getTime(),
         fimMs: combinarDataHora(data, item.fim).getTime(),
       })),

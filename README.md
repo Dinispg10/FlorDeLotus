@@ -23,6 +23,9 @@ Supabase, por isso vários computadores do salão veem a mesma agenda.
   valor médio e clientes atendidos, cada um comparado com o período anterior; gráfico da
   faturação ao longo do período (com tabela dos valores); e, por funcionária e por serviço,
   marcações e faturação. A ocupação de cada funcionária desconta as folgas e férias.
+  Cada marcação guarda o preço do serviço no momento em que é feita, como uma fatura:
+  mudar um preço só afeta as marcações de hoje em diante, e o que já passou não mexe
+  (`migrations/013_preco_na_marcacao.sql`).
 - **Marcações**: criar, editar e cancelar. Uma marcação está confirmada ou pendente;
   cancelar tira-a da agenda (pede confirmação antes). O ✕ em cada bloco cancela sem
   abrir a marcação.

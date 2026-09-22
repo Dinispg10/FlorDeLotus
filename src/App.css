@@ -1610,6 +1610,27 @@ button.cabecalho-coluna:hover {
   resize: vertical;
 }
 
+/* As caixas de marcar não são caixas de texto: tamanho próprio, sem contorno grande. */
+.booking-form input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  accent-color: var(--roxo-vivo);
+  cursor: pointer;
+}
+
+.booking-form input[type="checkbox"]:focus {
+  outline: none;
+}
+
+.booking-form input[type="checkbox"]:focus-visible {
+  outline: 2px solid rgba(124, 58, 237, 0.4);
+  outline-offset: 2px;
+}
+
 .booking-form input[readonly] {
   background: #f3f4f6;
   color: var(--texto-suave);
@@ -2259,6 +2280,207 @@ button.cabecalho-coluna:hover {
   color: var(--verde);
 }
 
+/* ---------------- Procurar cliente na agenda ---------------- */
+
+.pesquisa-marcacoes {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.botao-procurar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 0.8rem;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--roxo);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.botao-procurar:hover,
+.botao-procurar.ativo {
+  background: var(--roxo-claro);
+}
+
+.botao-procurar svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.painel-pesquisa {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 30;
+  width: 380px;
+  max-height: min(70vh, 560px);
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid var(--linha);
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(30, 27, 75, 0.18);
+}
+
+.painel-pesquisa input {
+  width: 100%;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  background: #fbfaff;
+  padding: 0.7rem 0.85rem;
+  color: var(--texto);
+}
+
+.painel-pesquisa input:focus {
+  outline: none;
+  border-color: var(--roxo-suave);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.18);
+  background: #fff;
+}
+
+.resultados-pesquisa {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin-top: 6px;
+}
+
+.resultado-cliente {
+  padding: 8px 4px 6px;
+}
+
+.resultado-cliente + .resultado-cliente {
+  border-top: 1px solid var(--linha);
+}
+
+.resultado-cliente header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 6px 4px;
+}
+
+.resultado-cliente header span {
+  color: var(--texto-suave);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.resultado-cliente ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.resultado-cliente li button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 6px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  text-align: left;
+  color: var(--texto);
+}
+
+.resultado-cliente li button:hover {
+  background: var(--roxo-claro);
+}
+
+.pesquisa-quando {
+  flex: 0 0 104px;
+  display: flex;
+  flex-direction: column;
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--roxo);
+}
+
+.pesquisa-quando em,
+.pesquisa-o-que em {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 0.78rem;
+  color: var(--texto-suave);
+}
+
+.pesquisa-o-que {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.pesquisa-o-que em {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pesquisa-mais {
+  padding: 2px 6px 0;
+  font-size: 0.76rem;
+  color: var(--texto-suave);
+}
+
+.pesquisa-vazia {
+  margin: 0;
+  padding: 10px 6px;
+  font-size: 0.82rem;
+  color: var(--texto-suave);
+}
+
+.pesquisa-vazia.erro {
+  color: #b91c1c;
+}
+
+/* Telemóvel: a lupa ao lado das funcionárias, e a caixa a toda a largura. */
+.linha-chips-telemovel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.linha-chips-telemovel .chips-deslizar {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 700px) {
+  .linha-chips-telemovel .botao-procurar {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  .linha-chips-telemovel .botao-procurar span {
+    display: none;
+  }
+
+  .painel-pesquisa {
+    position: fixed;
+    top: calc(64px + env(safe-area-inset-top));
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-height: 65%;
+  }
+}
+
 /* ---------------- Lembretes ---------------- */
 
 .caixa-modelo {
@@ -2505,7 +2727,8 @@ button.cabecalho-coluna:hover {
 
 @media (max-width: 1100px) {
   .painel-duplo {
-    grid-template-columns: 1fr;
+    /* minmax(0, …): uma tabela larga não pode esticar a coluna para fora do ecrã. */
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .resumo-cliente {
@@ -2915,8 +3138,33 @@ button.cabecalho-coluna:hover {
     grid-template-rows: 180px auto;
   }
 
+  /* Estatísticas à largura do ecrã: nada de arrastar a página para o lado. */
+  .conteudo {
+    overflow-x: hidden;
+  }
+
+  .estatisticas > *,
+  .painel-duplo > * {
+    min-width: 0;
+  }
+
   .tabela-estatisticas {
-    font-size: 0.78rem;
+    font-size: 0.8rem;
+  }
+
+  .tabela-estatisticas th {
+    padding: 0 4px 6px;
+    font-size: 0.62rem;
+    letter-spacing: 0.02em;
+  }
+
+  .tabela-estatisticas td {
+    padding: 8px 4px;
+  }
+
+  /* A ocupação fica só em percentagem; a barra não cabe. */
+  .medidor-trilho {
+    display: none;
   }
 
   .resumo-cliente {
@@ -2930,8 +3178,31 @@ button.cabecalho-coluna:hover {
 
 /* ---------------- Conta ---------------- */
 
-.form-conta {
+/* O cartão ocupa a página, e o conteúdo fica no meio dela, na horizontal e na vertical. */
+.cartao-conta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.cartao-conta .cartao-topo {
+  width: 100%;
   max-width: 420px;
+  justify-content: center;
+  text-align: center;
+}
+
+.form-conta {
+  width: 100%;
+  max-width: 420px;
+}
+
+.form-conta .checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
 }
 
 .form-conta h3 {

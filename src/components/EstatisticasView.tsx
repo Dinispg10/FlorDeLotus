@@ -214,9 +214,11 @@ export default function EstatisticasView({ configuracoes, funcionarios, servicos
     carregar();
   }, [carregar]);
 
+  // O preço guardado na marcação, como numa fatura: mudar o preço de um serviço não
+  // mexe no que já passou. Só marcações de antes da migração 013 usam o preço atual.
   const precoDe = useMemo(() => {
     const precos = new Map(servicos.map((servico) => [servico.id, servico.preco]));
-    return (servicoId: string) => precos.get(servicoId) ?? 0;
+    return (marcacao: Agendamento) => marcacao.preco ?? precos.get(marcacao.servicoId) ?? 0;
   }, [servicos]);
 
   const doPeriodo = useMemo(

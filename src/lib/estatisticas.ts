@@ -102,13 +102,13 @@ export type Resumo = {
 
 export const resumir = (
   marcacoes: Agendamento[],
-  precoDe: (servicoId: string) => number,
+  precoDe: (marcacao: Agendamento) => number,
   agora: number,
 ): Resumo => {
-  const faturacao = marcacoes.reduce((total, item) => total + precoDe(item.servicoId), 0);
+  const faturacao = marcacoes.reduce((total, item) => total + precoDe(item), 0);
   const realizada = marcacoes
     .filter((item) => item.fimMs <= agora)
-    .reduce((total, item) => total + precoDe(item.servicoId), 0);
+    .reduce((total, item) => total + precoDe(item), 0);
   const clientes = new Set(marcacoes.map((item) => item.clienteId ?? `nome:${item.cliente}`));
 
   return {
@@ -147,7 +147,7 @@ export type Ponto = {
 export const serieDoPeriodo = (
   periodo: Periodo,
   marcacoes: Agendamento[],
-  precoDe: (servicoId: string) => number,
+  precoDe: (marcacao: Agendamento) => number,
   configuracoes: Configuracoes,
 ): Ponto[] => {
   if (periodo.tipo === "dia") {
@@ -160,7 +160,7 @@ export const serieDoPeriodo = (
         chave: hora,
         rotulo: `${Number(hora.slice(0, 2))}h`,
         rotuloCompleto: `${hora} – ${String(Number(hora.slice(0, 2)) + 1).padStart(2, "0")}:00`,
-        faturacao: nestaHora.reduce((total, item) => total + precoDe(item.servicoId), 0),
+        faturacao: nestaHora.reduce((total, item) => total + precoDe(item), 0),
         marcacoes: nestaHora.length,
       };
     });
@@ -172,7 +172,7 @@ export const serieDoPeriodo = (
       chave: dia,
       rotulo: periodo.tipo === "semana" ? abreviaturaDiaSemana(dia) : numeroDoDia(dia),
       rotuloCompleto: dataPorExtenso(dia),
-      faturacao: doDia.reduce((total, item) => total + precoDe(item.servicoId), 0),
+      faturacao: doDia.reduce((total, item) => total + precoDe(item), 0),
       marcacoes: doDia.length,
     };
   });
@@ -253,7 +253,7 @@ export const porFuncionaria = (
   marcacoes: Agendamento[],
   ausencias: Ausencia[],
   configuracoes: Configuracoes,
-  precoDe: (servicoId: string) => number,
+  precoDe: (marcacao: Agendamento) => number,
 ): LinhaFuncionaria[] =>
   funcionarios
     .map((funcionaria) => {
@@ -269,7 +269,7 @@ export const porFuncionaria = (
       return {
         funcionaria,
         marcacoes: suas.length,
-        faturacao: suas.reduce((total, item) => total + precoDe(item.servicoId), 0),
+        faturacao: suas.reduce((total, item) => total + precoDe(item), 0),
         minutosMarcados: marcados,
         minutosDisponiveis: disponiveis,
         ocupacao: disponiveis > 0 ? Math.min(100, Math.round((marcados / disponiveis) * 100)) : null,
@@ -293,14 +293,14 @@ export type LinhaServico = {
 export const porServico = (
   marcacoes: Agendamento[],
   servicos: Servico[],
-  precoDe: (servicoId: string) => number,
+  precoDe: (marcacao: Agendamento) => number,
 ): LinhaServico[] => {
   const contagem = new Map<string, { vezes: number; faturacao: number }>();
 
   marcacoes.forEach((item) => {
     const atual = contagem.get(item.servicoId) ?? { vezes: 0, faturacao: 0 };
     atual.vezes += 1;
-    atual.faturacao += precoDe(item.servicoId);
+    atual.faturacao += precoDe(item);
     contagem.set(item.servicoId, atual);
   });
 

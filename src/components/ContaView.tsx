@@ -109,8 +109,6 @@ export default function ContaView({ email, onAviso }: Props) {
           Mostrar o que estou a escrever
         </label>
 
-        <p className="dica">Pelo menos {MINIMO} caracteres. Só tu vais saber esta palavra-passe.</p>
-
         {erro ? (
           <p className="login-error" role="alert">
             {erro}

@@ -4,12 +4,14 @@ import { dataPorExtenso, hoje, somarDias } from "../lib/datas";
 import {
   ROTULO_AUSENCIA,
   type Agendamento,
+  type Cliente,
   type Ausencia,
   type Configuracoes,
   type Funcionario,
   type Servico,
 } from "../lib/types";
 import type { PreDefinicao } from "./AgendamentoModal";
+import PesquisaMarcacoes from "./PesquisaMarcacoes";
 
 /** Distância mínima, em pixels, para um deslizar do dedo mudar de dia. */
 const DESLIZE_MINIMO = 70;
@@ -28,6 +30,7 @@ type Props = {
   onEscolherFuncionaria: (funcionariaId: string | null) => void;
   onAbrirNovo: (pre: PreDefinicao) => void;
   onAbrirExistente: (agendamento: Agendamento) => void;
+  clientes: Cliente[];
 };
 
 /**
@@ -48,6 +51,7 @@ export default function AgendaTelemovel({
   onEscolherFuncionaria,
   onAbrirNovo,
   onAbrirExistente,
+  clientes,
 }: Props) {
   const inicioDoToque = useRef<{ x: number; y: number } | null>(null);
 
@@ -105,6 +109,16 @@ export default function AgendaTelemovel({
         </button>
       </div>
 
+      <div className="linha-chips-telemovel">
+      <PesquisaMarcacoes
+        clientes={clientes}
+        funcionarios={funcionarios}
+        servicos={servicos}
+        onEscolher={(marcacao) => {
+          onMudarDia(marcacao.data);
+          onAbrirExistente(marcacao);
+        }}
+      />
       <div className="chips chips-deslizar">
         <button
           type="button"
@@ -124,6 +138,7 @@ export default function AgendaTelemovel({
             {item.nome}
           </button>
         ))}
+      </div>
       </div>
 
       <div
