@@ -26,5 +26,7 @@ dist-ssr
 *.sln
 *.sw?
 
-# Notas que ligam o código a este salão: o repositório é público.
+# Documentação e notas: ficam só no computador, fora do repositório.
 NOTAS-LOCAIS.md
+README.md
+RECUPERAR.md
