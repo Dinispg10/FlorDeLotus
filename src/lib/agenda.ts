@@ -128,7 +128,7 @@ export const intervaloDaGrelha = (
   let desde = minutosDesdeMeiaNoite(GRELHA_INICIO);
   let ate = minutosDesdeMeiaNoite(GRELHA_FIM);
 
-  Object.values(configuracoes.horarioSemanal).forEach((horario) => {
+  [...Object.values(configuracoes.horarioSemanal), ...configuracoes.diasEspeciais].forEach((horario) => {
     if (!horario.aberto) return;
     desde = Math.min(desde, minutosDesdeMeiaNoite(horario.inicio));
     ate = Math.max(ate, minutosDesdeMeiaNoite(horario.fim));
@@ -150,8 +150,25 @@ export const intervaloDaGrelha = (
 };
 
 /** Horário de abertura do salão no dia indicado. */
-export const horarioDoDia = (configuracoes: Configuracoes, data: string): HorarioDia =>
-  configuracoes.horarioSemanal[diaDaSemanaISO(data)];
+/** O feriado ou dia especial marcado para esta data, se houver. */
+export const diaEspecialDe = (configuracoes: Configuracoes, data: string) =>
+  configuracoes.diasEspeciais.find((dia) => dia.data === data) ?? null;
+
+/**
+ * O horário de um dia: num feriado ou dia especial manda o dele; nos outros, o da
+ * semana. Tudo passa por aqui (marcar, agenda, estatísticas).
+ */
+export const horarioDoDia = (configuracoes: Configuracoes, data: string): HorarioDia => {
+  const especial = diaEspecialDe(configuracoes, data);
+  if (especial) {
+    return { aberto: especial.aberto, inicio: especial.inicio, fim: especial.fim };
+  }
+  return configuracoes.horarioSemanal[diaDaSemanaISO(data)];
+};
+
+/** "Natal · fechado", "Véspera de Natal · 09:00-13:00". */
+export const descreverDiaEspecial = (dia: { nome: string; aberto: boolean; inicio: string; fim: string }) =>
+  `${dia.nome} · ${dia.aberto ? `${dia.inicio}-${dia.fim}` : "fechado"}`;
 
 /** Valida o formulário de marcação. Devolve a primeira mensagem de erro, ou null. */
 export const validarAgendamento = (
@@ -176,15 +193,18 @@ export const validarAgendamento = (
 
   const horario = horarioDoDia(configuracoes, candidato.data);
 
+  const especial = diaEspecialDe(configuracoes, candidato.data);
   if (!horario.aberto) {
-    return "O salão está fechado nesse dia. Muda a data ou altera o horário em Definições.";
+    return especial
+      ? `O salão está fechado nesse dia (${especial.nome}). Muda a data ou altera o dia em Definições → Horário.`
+      : "O salão está fechado nesse dia. Muda a data ou altera o horário em Definições.";
   }
 
   const inicioMin = minutosDesdeMeiaNoite(candidato.inicio);
   const fimMin = inicioMin + candidato.duracaoMinutos;
 
   if (inicioMin < minutosDesdeMeiaNoite(horario.inicio) || fimMin > minutosDesdeMeiaNoite(horario.fim)) {
-    return `Nesse dia o salão está aberto das ${horario.inicio} às ${horario.fim}. Esta marcação fica fora desse horário.`;
+    return `Nesse dia${especial ? ` (${especial.nome})` : ""} o salão está aberto das ${horario.inicio} às ${horario.fim}. Esta marcação fica fora desse horário.`;
   }
 
   return null;

@@ -7,6 +7,7 @@ import {
   type Cliente,
   type Configuracoes,
   type DiaDaSemana,
+  type DiaEspecial,
   type Funcionario,
   type HorarioDia,
   type HorarioSemanal,
@@ -631,8 +632,67 @@ const lerHorarioDia = (valor: string | undefined, padrao: HorarioDia): HorarioDi
 const escreverHorarioDia = (horario: HorarioDia) =>
   horario.aberto ? `${horario.inicio}-${horario.fim}` : "fechado";
 
+type RawDiaEspecial = {
+  id: string;
+  data: string;
+  nome: string;
+  aberto: boolean;
+  hora_inicio: string | null;
+  hora_fim: string | null;
+};
+
+const paraDiaEspecial = (item: RawDiaEspecial): DiaEspecial => ({
+  id: item.id,
+  data: item.data,
+  nome: item.nome,
+  aberto: item.aberto,
+  // A base de dados devolve "09:00:00"; a app usa "09:00".
+  inicio: (item.hora_inicio ?? "09:00").slice(0, 5),
+  fim: (item.hora_fim ?? "19:00").slice(0, 5),
+});
+
+/** Os feriados e dias especiais. Sem a migração 015, não há nenhum. */
+const listarDiasEspeciais = async (): Promise<DiaEspecial[]> => {
+  const { data, error } = await client()
+    .from("dias_especiais")
+    .select("id, data, nome, aberto, hora_inicio, hora_fim")
+    .order("data");
+  if (error) {
+    if (error.code !== "PGRST205" && error.code !== "42P01") {
+      console.error("Não foi possível carregar os feriados", error);
+    }
+    return [];
+  }
+  return (data ?? []).map((item) => paraDiaEspecial(item as RawDiaEspecial));
+};
+
+export const criarDiaEspecial = async (dados: Omit<DiaEspecial, "id">) => {
+  const { error } = await client()
+    .from("dias_especiais")
+    .insert({
+      data: dados.data,
+      nome: dados.nome.trim(),
+      aberto: dados.aberto,
+      hora_inicio: dados.aberto ? dados.inicio : null,
+      hora_fim: dados.aberto ? dados.fim : null,
+    });
+
+  if (error?.code === "23505") {
+    throw new Error("Esse dia já está na lista. Apaga-o primeiro para o mudar.");
+  }
+  falhar("Não foi possível guardar o dia", error);
+};
+
+export const apagarDiaEspecial = async (id: string) => {
+  const { error } = await client().from("dias_especiais").delete().eq("id", id);
+  falhar("Não foi possível apagar o dia", error);
+};
+
 export const carregarConfiguracoes = async (): Promise<Configuracoes> => {
-  const { data, error } = await client().from("configuracoes").select("nome, valor");
+  const [{ data, error }, diasEspeciais] = await Promise.all([
+    client().from("configuracoes").select("nome, valor"),
+    listarDiasEspeciais(),
+  ]);
 
   falhar("Não foi possível carregar as configurações", error);
 
@@ -649,6 +709,7 @@ export const carregarConfiguracoes = async (): Promise<Configuracoes> => {
 
   return {
     horarioSemanal,
+    diasEspeciais,
     lembreteHorasAntes: Number.isFinite(lembrete)
       ? lembrete
       : CONFIGURACOES_PADRAO.lembreteHorasAntes,

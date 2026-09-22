@@ -111,8 +111,22 @@ export type HorarioDia = {
 
 export type HorarioSemanal = Record<DiaDaSemana, HorarioDia>;
 
+/** Feriado ou dia especial, escolhido à mão: nesse dia manda este horário. */
+export type DiaEspecial = {
+  id: string;
+  /** AAAA-MM-DD */
+  data: string;
+  nome: string;
+  aberto: boolean;
+  /** HH:MM (só quando aberto) */
+  inicio: string;
+  fim: string;
+};
+
 export type Configuracoes = {
   horarioSemanal: HorarioSemanal;
+  /** Feriados e dias especiais, por ordem de data. */
+  diasEspeciais: DiaEspecial[];
   lembreteHorasAntes: number;
   smsAtivo: boolean;
   modeloLembrete: string;
@@ -133,6 +147,7 @@ export const CONFIGURACOES_PADRAO: Configuracoes = {
     6: { aberto: true, inicio: "09:00", fim: "18:00" },
     7: { aberto: false, inicio: "09:00", fim: "19:00" },
   },
+  diasEspeciais: [],
   lembreteHorasAntes: 8,
   smsAtivo: false,
   modeloLembrete: MODELO_LEMBRETE_PADRAO,

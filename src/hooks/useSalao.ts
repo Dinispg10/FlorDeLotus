@@ -107,6 +107,7 @@ export function useSalao(ativo: boolean, diaSelecionado: string) {
       .on("postgres_changes", { event: "*", schema: "public", table: "funcionarios" }, () => agendar("base"))
       .on("postgres_changes", { event: "*", schema: "public", table: "servicos" }, () => agendar("base"))
       .on("postgres_changes", { event: "*", schema: "public", table: "configuracoes" }, () => agendar("base"))
+      .on("postgres_changes", { event: "*", schema: "public", table: "dias_especiais" }, () => agendar("base"))
       .subscribe();
 
     return () => {

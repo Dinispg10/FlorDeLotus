@@ -41,6 +41,11 @@ Supabase, por isso vários computadores do salão veem a mesma agenda.
   ou fica fechado. Manda no que se pode marcar — fora dele, a app recusa. A grelha mostra
   pelo menos das 08:00 às 20:00 e estica se o horário ou alguma marcação for além disso;
   as horas fechadas aparecem às riscas.
+- **Feriados e dias especiais** (Definições → Horário): escolhidos à mão, cada um com o
+  seu horário (fechado, ou aberto a outras horas, como a véspera de Natal até às 13:00).
+  Nesse dia manda esse horário em vez do da semana: não se marca fora dele, a agenda
+  mostra o nome do feriado e as estatísticas descontam-no na ocupação
+  (`migrations/015_dias_especiais.sql`).
 - **Folgas e férias**: marcam-se na ficha de cada funcionária (dias inteiros ou algumas
   horas). Aparecem às riscas na agenda e a app recusa marcar em cima delas. Ao criar uma
   folga em cima de marcações existentes, avisa quantas são antes de deixar continuar.

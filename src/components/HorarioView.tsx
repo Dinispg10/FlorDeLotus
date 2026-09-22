@@ -1,6 +1,7 @@
 import { useState } from "react";
 import * as api from "../lib/api";
 import { minutosDesdeMeiaNoite } from "../lib/datas";
+import DiasEspeciais from "./DiasEspeciais";
 import {
   DIAS_DA_SEMANA,
   type Configuracoes,
@@ -121,6 +122,13 @@ export default function HorarioView({ configuracoes, onGuardado, onErro, onAviso
           As folgas e as férias de cada funcionária marcam-se na página Funcionárias — este
           horário é o do salão inteiro.
         </p>
+
+        <DiasEspeciais
+          diasEspeciais={configuracoes.diasEspeciais}
+          onGuardado={onGuardado}
+          onErro={onErro}
+          onAviso={onAviso}
+        />
     </div>
   );
 }

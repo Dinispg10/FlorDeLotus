@@ -5,6 +5,8 @@ import {
   distribuirEmFaixas,
   horarioDoDia,
   intervaloDaGrelha,
+  descreverDiaEspecial,
+  diaEspecialDe,
 } from "../lib/agenda";
 import {
   abreviaturaDiaSemana,
@@ -208,6 +210,8 @@ export default function AgendaView({
     [agendamentosDaSemana, funcionariaSelecionada],
   );
 
+  const especialDoDia = diaEspecialDe(configuracoes, dia);
+
   const colunas = useMemo<Coluna[]>(() => {
     const doDia = (data: string) => visiveis.filter((item) => item.data === data);
 
@@ -215,7 +219,9 @@ export default function AgendaView({
       return diasDaSemana.map((data) => ({
         chave: data,
         titulo: abreviaturaDiaSemana(data),
-        subtitulo: numeroDoDia(data),
+        subtitulo: diaEspecialDe(configuracoes, data)
+          ? `${numeroDoDia(data)} · ${diaEspecialDe(configuracoes, data)?.nome}`
+          : numeroDoDia(data),
         cor: funcionaria?.cor ?? "#EDE9FE",
         data,
         funcionarioId: funcionariaSelecionada,
@@ -252,7 +258,7 @@ export default function AgendaView({
         destacada: false,
       };
     });
-  }, [ativas, dia, diasDaSemana, funcionaria, funcionariaSelecionada, visiveis, vista]);
+  }, [ativas, configuracoes, dia, diasDaSemana, funcionaria, funcionariaSelecionada, visiveis, vista]);
 
   // "21 – 27 SET", ou "28 SET – 4 OUT" quando a semana muda de mês.
   const domingoDaSemana = somarDias(segunda, 6);
@@ -452,6 +458,11 @@ export default function AgendaView({
         </div>
       </div>
 
+      {/* Feriado ou dia especial: o nome e o horário desse dia, por cima da grelha. */}
+      {vista === "dia" && especialDoDia ? (
+        <p className="aviso-dia-especial">{descreverDiaEspecial(especialDoDia)}</p>
+      ) : null}
+
       {colunas.length === 0 ? (
         <div className="estado-vazio">
           Ainda não há funcionárias ativas. Podes adicioná-las em Definições → Funcionárias.
@@ -482,7 +493,13 @@ export default function AgendaView({
                 </button>
 
                 <div className="lista-dia">
-                  {!horario.aberto ? <p className="dia-fechado-nota">Fechado</p> : null}
+                  {!horario.aberto ? (
+                    <p className="dia-fechado-nota">
+                      {diaEspecialDe(configuracoes, coluna.data)
+                        ? `${diaEspecialDe(configuracoes, coluna.data)?.nome} · fechado`
+                        : "Fechado"}
+                    </p>
+                  ) : null}
 
                   {folgas.map((ausencia) => {
                     const dona = funcionarios.find((item) => item.id === ausencia.funcionarioId);
@@ -586,7 +603,15 @@ export default function AgendaView({
                 {(() => {
                   const horario = horarioDoDia(configuracoes, coluna.data);
                   const faixas = !horario.aberto
-                    ? [{ de: aberturaMin, ate: fechoMin, rotulo: "Fechado" }]
+                    ? [
+                        {
+                          de: aberturaMin,
+                          ate: fechoMin,
+                          rotulo: diaEspecialDe(configuracoes, coluna.data)
+                            ? `${diaEspecialDe(configuracoes, coluna.data)?.nome} · fechado`
+                            : "Fechado",
+                        },
+                      ]
                     : [
                         { de: aberturaMin, ate: minutosDesdeMeiaNoite(horario.inicio), rotulo: "" },
                         { de: minutosDesdeMeiaNoite(horario.fim), ate: fechoMin, rotulo: "" },

@@ -1,7 +1,7 @@
 -- ⚠ APAGA TUDO. Não tem volta atrás.
 --
--- Deita abaixo as sete tabelas do salão com tudo o que têm lá dentro: marcações,
--- clientes, funcionárias, serviços, folgas, configurações e registos de SMS.
+-- Deita abaixo as oito tabelas do salão com tudo o que têm lá dentro: marcações,
+-- clientes, funcionárias, serviços, folgas, feriados, configurações e registos de SMS.
 -- Só deve ser corrido quando se quer mesmo recomeçar do zero.
 --
 -- O que NÃO é apagado: as contas de acesso (Authentication → Users) e os papéis
@@ -16,3 +16,4 @@ DROP TABLE IF EXISTS clientes CASCADE;
 DROP TABLE IF EXISTS funcionarios CASCADE;
 DROP TABLE IF EXISTS servicos CASCADE;
 DROP TABLE IF EXISTS configuracoes CASCADE;
+DROP TABLE IF EXISTS dias_especiais CASCADE;

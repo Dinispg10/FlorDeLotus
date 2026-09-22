@@ -388,6 +388,36 @@ ON configuracoes FOR UPDATE TO authenticated
 USING (nome = 'modelo_lembrete') WITH CHECK (nome = 'modelo_lembrete');
 
 /* ------------------------------------------------------------------ */
+/* Feriados e dias especiais (ver migrations/015_dias_especiais.sql)   */
+/* ------------------------------------------------------------------ */
+-- Escolhidos à mão em Definições → Horário; cada um com o seu horário, que nesse
+-- dia manda em vez do horário da semana. Só a gerente os muda.
+
+CREATE TABLE IF NOT EXISTS dias_especiais (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  data DATE NOT NULL UNIQUE,
+  nome TEXT NOT NULL,
+  aberto BOOLEAN NOT NULL DEFAULT FALSE,
+  hora_inicio TIME,
+  hora_fim TIME,
+  criado_em TIMESTAMPTZ DEFAULT NOW(),
+
+  CONSTRAINT dias_especiais_horas CHECK (
+    NOT aberto OR (hora_inicio IS NOT NULL AND hora_fim IS NOT NULL AND hora_fim > hora_inicio)
+  )
+);
+
+ALTER TABLE dias_especiais ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "todos_leem_dias_especiais" ON dias_especiais;
+DROP POLICY IF EXISTS "gerente_gere_dias_especiais" ON dias_especiais;
+CREATE POLICY "todos_leem_dias_especiais"
+ON dias_especiais FOR SELECT TO authenticated USING (true);
+CREATE POLICY "gerente_gere_dias_especiais"
+ON dias_especiais FOR ALL TO authenticated
+USING ((SELECT public.e_gerente())) WITH CHECK ((SELECT public.e_gerente()));
+
+/* ------------------------------------------------------------------ */
 /* Tempo real: avisar os outros aparelhos quando algo muda             */
 /* ------------------------------------------------------------------ */
 
@@ -401,7 +431,8 @@ BEGIN
   END IF;
 
   FOREACH tabela IN ARRAY ARRAY[
-    'agendamentos', 'ausencias', 'clientes', 'funcionarios', 'servicos', 'configuracoes'
+    'agendamentos', 'ausencias', 'clientes', 'funcionarios', 'servicos', 'configuracoes',
+    'dias_especiais'
   ] LOOP
     IF NOT EXISTS (
       SELECT 1 FROM pg_publication_tables

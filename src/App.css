@@ -2492,6 +2492,139 @@ button.cabecalho-coluna:hover {
   }
 }
 
+/* ---------------- Feriados e dias especiais (Definições → Horário) ---------------- */
+
+.dias-especiais {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--linha);
+}
+
+.dias-especiais h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.form-dia-especial {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+  margin: 12px 0 14px;
+}
+
+.form-dia-especial label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.77rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.form-dia-especial input,
+.form-dia-especial select {
+  border: 1px solid var(--linha);
+  border-radius: 8px;
+  background: #fbfaff;
+  padding: 0.45rem 0.6rem;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.form-dia-especial .campo-nome-dia {
+  flex: 1 1 180px;
+}
+
+.lista-dias-especiais {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lista-dias-especiais li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 12px;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.lista-dias-especiais li.passado {
+  opacity: 0.6;
+}
+
+.dia-especial-data {
+  flex: 0 0 96px;
+  display: flex;
+  flex-direction: column;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--roxo);
+}
+
+.dia-especial-data em,
+.dia-especial-nome em {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 0.78rem;
+  color: var(--texto-suave);
+}
+
+.dia-especial-nome {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.dia-especial-nome em.fechado {
+  color: #b45309;
+  font-weight: 600;
+}
+
+.botao-texto {
+  margin-top: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--roxo-vivo);
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.botao-texto:hover {
+  text-decoration: underline;
+}
+
+/* Na agenda: o nome do feriado por cima da grelha, no dia em que calha. */
+.aviso-dia-especial {
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+@media (max-width: 700px) {
+  .form-dia-especial > * {
+    flex: 1 1 45%;
+  }
+
+  .form-dia-especial .campo-nome-dia,
+  .form-dia-especial button {
+    flex-basis: 100%;
+  }
+}
+
 /* ---------------- Lembretes ---------------- */
 
 .caixa-modelo {

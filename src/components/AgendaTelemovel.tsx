@@ -1,5 +1,5 @@
 import { useMemo, useRef } from "react";
-import { ausenciasDoDia, horarioDoDia } from "../lib/agenda";
+import { ausenciasDoDia, descreverDiaEspecial, diaEspecialDe, horarioDoDia } from "../lib/agenda";
 import { dataPorExtenso, hoje, somarDias } from "../lib/datas";
 import {
   ROTULO_AUSENCIA,
@@ -76,7 +76,11 @@ export default function AgendaTelemovel({
       <SeletorTelemovel
         titulo={dataPorExtenso(dia)}
         subtitulo={`${dia === hoje() ? "Hoje · " : ""}${
-          horario.aberto ? `Aberto das ${horario.inicio} às ${horario.fim}` : "Salão fechado"
+          diaEspecialDe(configuracoes, dia)
+            ? descreverDiaEspecial(diaEspecialDe(configuracoes, dia)!)
+            : horario.aberto
+              ? `Aberto das ${horario.inicio} às ${horario.fim}`
+              : "Salão fechado"
         }`}
         dia={dia}
         onEscolherDia={onMudarDia}
