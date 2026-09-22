@@ -825,9 +825,6 @@ input::-ms-clear {
   color: var(--texto-suave);
 }
 
-.rotulo-periodo.e-hoje {
-  color: var(--verde);
-}
 
 /* O rótulo da semana só informa; escolher uma data faz-se no seletor do dia. */
 .rotulo-semana,
@@ -3177,6 +3174,26 @@ button.cabecalho-coluna:hover {
     padding-bottom: calc(24px + env(safe-area-inset-bottom));
   }
 
+  /* Nada nas janelas pode ser mais largo do que o ecrã: só deslizam para cima e baixo. */
+  .modal-overlay,
+  .modal-card {
+    overflow-x: hidden;
+    touch-action: pan-y;
+  }
+
+  .modal-card input,
+  .modal-card select,
+  .modal-card textarea {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .modal-card .inline-fields > *,
+  .modal-card .campos-servico > *,
+  .modal-card form > * {
+    min-width: 0;
+  }
+
   .modal-card > .modal-header {
     position: sticky;
     top: 0;
@@ -3364,4 +3381,28 @@ button.cabecalho-coluna:hover {
 .form-conta h3 {
   margin: 8px 0 0;
   font-size: 1rem;
+}
+
+/* ---------------- Pormenores da janela de marcação ---------------- */
+
+.titulo-nova-marcacao {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.aviso-retirados {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.82rem;
+}
+
+.aviso-retirados .botao-texto {
+  margin: 0 0 0 auto;
 }

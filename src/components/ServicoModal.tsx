@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import * as api from "../lib/api";
 import type { Servico } from "../lib/types";
+import CampoNumero from "./CampoNumero";
 import Modal from "./Modal";
 
 type Props = {
@@ -72,24 +73,12 @@ export default function ServicoModal({ servico, onFechar, onGuardado }: Props) {
         <div className="inline-fields">
           <label>
             Duração (min)
-            <input
-              type="number"
-              min={5}
-              step={5}
-              value={duracaoMinutos}
-              onChange={(evento) => setDuracaoMinutos(Number(evento.target.value))}
-            />
+            <CampoNumero value={duracaoMinutos} onChange={setDuracaoMinutos} />
           </label>
 
           <label>
             Preço (€)
-            <input
-              type="number"
-              min={0}
-              step={0.5}
-              value={preco}
-              onChange={(evento) => setPreco(Number(evento.target.value))}
-            />
+            <CampoNumero value={preco} onChange={setPreco} decimal />
           </label>
         </div>
 

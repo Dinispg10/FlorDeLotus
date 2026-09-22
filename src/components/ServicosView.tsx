@@ -36,6 +36,11 @@ export default function ServicosView({
     try {
       const atualizado = await api.atualizarServico(servico.id, { ativo: !servico.ativo });
       onServicosAlterados(servicos.map((item) => (item.id === atualizado.id ? atualizado : item)));
+      onAviso(
+        atualizado.ativo
+          ? `${atualizado.nome} reativado: volta a aparecer nas marcações.`
+          : `${atualizado.nome} desativado: deixa de aparecer nas marcações novas.`,
+      );
     } catch (causa) {
       onErro(causa instanceof Error ? causa.message : "Não foi possível alterar o serviço.");
     }

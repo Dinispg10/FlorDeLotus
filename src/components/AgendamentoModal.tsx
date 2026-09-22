@@ -24,6 +24,7 @@ import {
   type StatusAgendamento,
 } from "../lib/types";
 import ConfirmarModal from "./ConfirmarModal";
+import CampoNumero from "./CampoNumero";
 
 export type PreDefinicao = {
   data: string;
@@ -160,6 +161,7 @@ export default function AgendamentoModal({
       ],
   );
 
+  const [retiradas, setRetiradas] = useState<LinhaServico[]>([]);
   const [erro, setErro] = useState("");
   const [aGuardar, setAGuardar] = useState(false);
   const [confirmarCancelar, setConfirmarCancelar] = useState(false);
@@ -343,8 +345,23 @@ export default function AgendamentoModal({
     setErro("");
   };
 
-  const removerLinha = (chave: string) =>
-    setLinhas((anteriores) => anteriores.filter((linha) => linha.chave !== chave));
+  const removerLinha = (chave: string) => {
+    const linha = linhas.find((item) => item.chave === chave);
+    // Um serviço que já estava guardado fica à vista até se guardar (dá para desfazer).
+    if (linha?.id) setRetiradas((anteriores) => [...anteriores, linha]);
+    setLinhas((anteriores) => anteriores.filter((item) => item.chave !== chave));
+  };
+
+  // Voltam ao lugar que tinham na visita (senão as horas trocavam); os serviços
+  // acrescentados agora ficam no fim.
+  const desfazerRetiradas = () => {
+    const lugar = (linha: LinhaServico) =>
+      linha.id ? idsDaVisita.indexOf(linha.id) : idsDaVisita.length;
+    setLinhas((anteriores) =>
+      [...anteriores, ...retiradas].sort((a, b) => lugar(a) - lugar(b)),
+    );
+    setRetiradas([]);
+  };
 
   const guardar = async (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
@@ -448,10 +465,14 @@ export default function AgendamentoModal({
         onMouseDown={(evento) => evento.stopPropagation()}
       >
         <header className="modal-header">
-          <div>
-            <p className="eyebrow">{emEdicao ? "Editar marcação" : "Nova marcação"}</p>
-            <h2>{emEdicao ? agendamento.cliente : "Quem vem ao salão?"}</h2>
-          </div>
+          {emEdicao ? (
+            <div>
+              <p className="eyebrow">Editar marcação</p>
+              <h2>{agendamento.cliente}</h2>
+            </div>
+          ) : (
+            <h2 className="titulo-nova-marcacao">Nova marcação</h2>
+          )}
           <button type="button" className="icon-button" onClick={onFechar} aria-label="Fechar">
             ×
           </button>
@@ -566,14 +587,9 @@ export default function AgendamentoModal({
 
                   <label className="campo-duracao">
                     Min
-                    <input
-                      type="number"
-                      min={5}
-                      step={5}
+                    <CampoNumero
                       value={item.duracaoMinutos}
-                      onChange={(evento) =>
-                        alterarLinha(item.chave, { duracaoMinutos: Number(evento.target.value) })
-                      }
+                      onChange={(minutos) => alterarLinha(item.chave, { duracaoMinutos: minutos })}
                     />
                   </label>
 
@@ -595,6 +611,20 @@ export default function AgendamentoModal({
                 </div>
               </div>
             ))}
+
+            {retiradas.length > 0 ? (
+              <p className="aviso-retirados" role="status">
+                {retiradas.length === 1 ? "Sai desta visita ao guardar: " : "Saem desta visita ao guardar: "}
+                <strong>
+                  {retiradas
+                    .map((linha) => servicos.find((item) => item.id === linha.servicoId)?.nome ?? "serviço")
+                    .join(", ")}
+                </strong>
+                <button type="button" className="botao-texto" onClick={desfazerRetiradas}>
+                  Desfazer
+                </button>
+              </p>
+            ) : null}
 
             {soEsta ? (
               <p className="dica">

@@ -344,11 +344,11 @@ export default function AgendaView({
             </button>
             <button
               type="button"
-              className={`rotulo-periodo ${dia === hoje() ? "e-hoje" : ""}`}
+              className="rotulo-periodo"
               onClick={abrirSeletorDeData}
               title="Escolher data"
             >
-              {abreviaturaDiaSemana(dia)}, {dataCompacta(dia)}
+              {dia === hoje() ? "Hoje" : `${abreviaturaDiaSemana(dia)}, ${dataCompacta(dia)}`}
             </button>
             <input
               ref={seletorData}

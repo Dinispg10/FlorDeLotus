@@ -127,7 +127,9 @@ function App() {
       setModal(null);
       setAviso(
         modal?.agendamento
-          ? "Alterações guardadas."
+          ? removidos.length > 0
+            ? `Alterações guardadas. ${removidos.length === 1 ? "1 serviço saiu" : `${removidos.length} serviços saíram`} da visita.`
+            : "Alterações guardadas."
           : agendamentos.length > 1
             ? `${agendamentos.length} marcações guardadas.`
             : "Marcação guardada.",
