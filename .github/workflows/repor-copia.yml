@@ -1,0 +1,140 @@
+name: Repor a cópia de segurança
+
+# ⚠ APAGA A BASE DE DADOS e põe-na como estava na cópia escolhida. É o que se faz num
+# dia mau (dados apagados por engano, base estragada), e também serve de ensaio.
+#
+# Travas: só corre à mão, e só depois de se escrever REPOR na caixa de confirmação.
+# As contas de acesso (Authentication → Users) não são tocadas.
+#
+# Nunca mostra dados: só números e mensagens de erro sem valores.
+on:
+  workflow_dispatch:
+    inputs:
+      confirmacao:
+        description: 'Escreve REPOR para confirmar que a base de dados vai ser apagada'
+        required: true
+        default: ''
+
+jobs:
+  repor:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read # para ir buscar a cópia a outra execução
+
+    steps:
+      - name: Confirmar
+        shell: bash
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          COPIA_PASSWORD: ${{ secrets.COPIA_PASSWORD }}
+        run: |
+          if [ "${{ inputs.confirmacao }}" != "REPOR" ]; then
+            echo "::error::Escreve REPOR na caixa de confirmação para esta ação correr."
+            exit 1
+          fi
+          for NOME in SUPABASE_DB_URL COPIA_PASSWORD; do
+            if [ -z "${!NOME}" ]; then echo "::error::Falta o segredo $NOME."; exit 1; fi
+          done
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Instalar o psql 17
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSo /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+
+      - name: Ir buscar a última cópia e destrancá-la
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COPIA_PASSWORD: ${{ secrets.COPIA_PASSWORD }}
+        run: |
+          set -euo pipefail
+          umask 077
+          EXECUCAO=$(gh run list --workflow copia.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+          if [ -z "$EXECUCAO" ]; then echo "::error::Ainda não há nenhuma cópia."; exit 1; fi
+          gh run download "$EXECUCAO" --dir "$RUNNER_TEMP/descarga"
+          FICHEIRO=$(find "$RUNNER_TEMP/descarga" -name '*.sql.gz.gpg' | head -1)
+          echo "Cópia usada: $(basename "$FICHEIRO")"
+          printf '%s' "$COPIA_PASSWORD" | gpg --batch --quiet --pinentry-mode loopback \
+            --passphrase-fd 0 --decrypt "$FICHEIRO" | gunzip > "$RUNNER_TEMP/copia.sql"
+          grep -q 'CREATE TABLE "public"."agendamentos"' "$RUNNER_TEMP/copia.sql"
+
+      - name: Repor
+        shell: bash
+        env:
+          DESTINO: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          PSQL=/usr/lib/postgresql/17/bin/psql
+          COPIA="$RUNNER_TEMP/copia.sql"
+
+          # Quantas linhas traz a cópia, tabela a tabela.
+          awk '/^COPY "public"\./ { split($2, p, "."); t = p[2]; gsub(/"/, "", t); n[t] = 0; dentro = 1; next }
+               dentro && /^\\\.$/ { dentro = 0; next }
+               dentro { n[t]++ }
+               END { for (t in n) print t, n[t] }' "$COPIA" | sort > "$RUNNER_TEMP/esperado.txt"
+
+          # Onde vive a extensão das sobreposições, para a recriar no mesmo sítio.
+          EXTENSAO=$($PSQL "$DESTINO" -XAtq -c "SELECT extnamespace::regnamespace::text FROM pg_extension WHERE extname = 'btree_gist'")
+          echo "btree_gist vive em: ${EXTENSAO:-(não instalada)}"
+
+          # Apagar tudo o que é do salão e voltar a criar a partir da cópia.
+          $PSQL "$DESTINO" -Xq -v ON_ERROR_STOP=1 <<SQL
+          DROP SCHEMA IF EXISTS public CASCADE;
+          CREATE SCHEMA public;
+          GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+          GRANT ALL ON SCHEMA public TO postgres;
+          SQL
+          if [ -n "$EXTENSAO" ]; then
+            $PSQL "$DESTINO" -Xq -v ON_ERROR_STOP=1 -c "CREATE SCHEMA IF NOT EXISTS $EXTENSAO; CREATE EXTENSION IF NOT EXISTS btree_gist WITH SCHEMA $EXTENSAO"
+          fi
+
+          sed -i 's/^CREATE SCHEMA "public";$/CREATE SCHEMA IF NOT EXISTS "public";/' "$COPIA"
+          if ! $PSQL "$DESTINO" -Xq -v ON_ERROR_STOP=1 -v VERBOSITY=terse --single-transaction \
+                -f "$COPIA" > /dev/null 2> "$RUNNER_TEMP/erros.txt"; then
+            echo "::error::A reposição falhou:"
+            sed -E 's/"[^"]*"/"…"/g; s/\([^)]*\)/(…)/g' "$RUNNER_TEMP/erros.txt" | head -5
+            exit 1
+          fi
+          rm -f "$COPIA"
+
+          # As permissões de leitura/escrita da app e o tempo real não vão na cópia.
+          $PSQL "$DESTINO" -Xq -v ON_ERROR_STOP=1 <<SQL
+          GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
+          GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
+          GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO anon, authenticated, service_role;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO anon, authenticated, service_role;
+          REVOKE EXECUTE ON FUNCTION public.e_gerente() FROM PUBLIC, anon;
+          REVOKE EXECUTE ON FUNCTION public.guardar_visita(uuid, jsonb, uuid[]) FROM PUBLIC, anon;
+          SQL
+          awk '/^DO \$tempo_real\$/,/^\$tempo_real\$;/' supabase/schema.sql > "$RUNNER_TEMP/tempo_real.sql"
+          $PSQL "$DESTINO" -Xq -v ON_ERROR_STOP=1 -f "$RUNNER_TEMP/tempo_real.sql"
+
+          # Conferir.
+          FALHOU=0
+          echo "Tabela            Na cópia   Reposto"
+          while read -r TABELA ESPERADO; do
+            REPOSTO=$($PSQL "$DESTINO" -XAtq -c "SELECT count(*) FROM public.\"$TABELA\"")
+            MARCA="ok"; [ "$ESPERADO" != "$REPOSTO" ] && { MARCA="DIFERENTE"; FALHOU=1; }
+            printf '%-16s %9s %9s   %s\n' "$TABELA" "$ESPERADO" "$REPOSTO" "$MARCA"
+          done < "$RUNNER_TEMP/esperado.txt"
+
+          SEM_RLS=$($PSQL "$DESTINO" -XAtq -c "SELECT count(*) FROM pg_tables WHERE schemaname = 'public' AND NOT rowsecurity")
+          echo "Tabelas sem proteção (RLS): $SEM_RLS"
+          [ "$SEM_RLS" != "0" ] && FALHOU=1
+          echo "Tabelas com tempo real: $($PSQL "$DESTINO" -XAtq -c "SELECT count(*) FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public'")"
+          echo "Funções do salão: $($PSQL "$DESTINO" -XAtq -c "SELECT count(*) FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public'")"
+
+          if [ "$FALHOU" = "1" ]; then
+            echo "::error::A reposição não bateu certo."
+            exit 1
+          fi
+          echo "Reposto por inteiro."
