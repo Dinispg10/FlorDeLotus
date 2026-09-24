@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import * as api from "../lib/api";
 import { supabase } from "../lib/supabase";
 import { inicioDaSemana, somarDias } from "../lib/datas";
+import { guardar, ler, pareceFaltaDeRede } from "../lib/guardado";
 import {
   CONFIGURACOES_PADRAO,
   type Agendamento,
@@ -14,6 +15,19 @@ import {
 
 const mensagemDeErro = (erro: unknown) =>
   erro instanceof Error ? erro.message : "Ocorreu um erro inesperado.";
+
+/** O que se guarda no aparelho para a agenda continuar a ver-se sem internet. */
+type BaseGuardada = {
+  funcionarios: Funcionario[];
+  servicos: Servico[];
+  clientes: Cliente[];
+  configuracoes: Configuracoes;
+};
+
+type SemanaGuardada = {
+  agendamentos: Agendamento[];
+  ausencias: Ausencia[];
+};
 
 /**
  * Carrega e mantém os dados do salão.
@@ -28,6 +42,8 @@ export function useSalao(ativo: boolean, diaSelecionado: string) {
   const [configuracoes, setConfiguracoes] = useState<Configuracoes>(CONFIGURACOES_PADRAO);
   const [aCarregar, setACarregar] = useState(true);
   const [erro, setErro] = useState("");
+  // Sem internet: mostra-se a última agenda guardada neste aparelho, e diz-se quando é.
+  const [guardadoEm, setGuardadoEm] = useState<string | null>(null);
 
   const segunda = inicioDaSemana(diaSelecionado);
   const domingo = somarDias(segunda, 6);
@@ -45,9 +61,26 @@ export function useSalao(ativo: boolean, diaSelecionado: string) {
       setServicos(listaServicos);
       setClientes(listaClientes);
       setConfiguracoes(config);
+      guardar<BaseGuardada>("base", {
+        funcionarios: listaFuncionarios,
+        servicos: listaServicos,
+        clientes: listaClientes,
+        configuracoes: config,
+      });
+      setGuardadoEm(null);
       setErro("");
     } catch (causa) {
-      setErro(mensagemDeErro(causa));
+      const copia = pareceFaltaDeRede(causa) ? ler<BaseGuardada>("base") : null;
+      if (!copia) {
+        setErro(mensagemDeErro(causa));
+        return;
+      }
+      setFuncionarios(copia.dados.funcionarios);
+      setServicos(copia.dados.servicos);
+      setClientes(copia.dados.clientes);
+      setConfiguracoes(copia.dados.configuracoes);
+      setGuardadoEm(copia.quando);
+      setErro("");
     }
   }, [ativo]);
 
@@ -60,9 +93,28 @@ export function useSalao(ativo: boolean, diaSelecionado: string) {
       ]);
       setAgendamentos(marcacoes);
       setAusencias(folgas);
+      guardar<SemanaGuardada>(`semana:${segunda}`, { agendamentos: marcacoes, ausencias: folgas });
+      setGuardadoEm(null);
       setErro("");
     } catch (causa) {
-      setErro(mensagemDeErro(causa));
+      // Sem rede: a semana que estiver guardada neste aparelho. Uma semana nunca vista
+      // aparece vazia, com o aviso de que está sem ligação.
+      const copia = pareceFaltaDeRede(causa) ? ler<SemanaGuardada>(`semana:${segunda}`) : null;
+      if (!copia) {
+        if (pareceFaltaDeRede(causa)) {
+          setAgendamentos([]);
+          setAusencias([]);
+          setGuardadoEm(new Date().toISOString());
+          setErro("");
+          return;
+        }
+        setErro(mensagemDeErro(causa));
+        return;
+      }
+      setAgendamentos(copia.dados.agendamentos);
+      setAusencias(copia.dados.ausencias);
+      setGuardadoEm(copia.quando);
+      setErro("");
     }
   }, [ativo, segunda, domingo]);
 
@@ -133,9 +185,17 @@ export function useSalao(ativo: boolean, diaSelecionado: string) {
       recarregarBaseAtual.current();
     };
 
+    const aoVoltarARede = () => {
+      ultimaVez = Date.now();
+      recarregarAgendaAtual.current();
+      recarregarBaseAtual.current();
+    };
+
     window.addEventListener("focus", aoVoltar);
     document.addEventListener("visibilitychange", aoVoltar);
+    window.addEventListener("online", aoVoltarARede);
     return () => {
+      window.removeEventListener("online", aoVoltarARede);
       window.removeEventListener("focus", aoVoltar);
       document.removeEventListener("visibilitychange", aoVoltar);
     };
@@ -186,6 +246,7 @@ export function useSalao(ativo: boolean, diaSelecionado: string) {
     setServicos,
     setClientes,
     setAusencias,
+    guardadoEm,
     guardarNaLista,
     removerDaLista,
     recarregarBase: carregarBase,

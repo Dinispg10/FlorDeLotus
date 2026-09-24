@@ -3,7 +3,8 @@ import type { Session } from "@supabase/supabase-js";
 import "./App.css";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import * as api from "./lib/api";
-import { dataPorExtenso, hoje } from "./lib/datas";
+import { dataPorExtenso, hoje, horaLocal } from "./lib/datas";
+import { esquecerTudo } from "./lib/guardado";
 import type { Agendamento, Cliente } from "./lib/types";
 import { useSalao } from "./hooks/useSalao";
 import { useEcraPequeno } from "./hooks/useEcraPequeno";
@@ -167,6 +168,8 @@ function App() {
   }, [aCancelar, salao]);
 
   const sair = async () => {
+    // Os dados do salão não ficam neste aparelho depois de sair.
+    esquecerTudo();
     if (!supabase) return;
     await supabase.auth.signOut();
     setSession(null);
@@ -204,6 +207,10 @@ function App() {
   const semServicos = salao.servicos.filter((item) => item.ativo).length === 0;
   const faltaCatalogo = semFuncionarias || semServicos;
 
+  // Sem internet: vê-se a última agenda guardada neste aparelho, mas não se marca.
+  const semLigacao = salao.guardadoEm !== null;
+  const motivoSemLigacao = "Sem internet: dá para ver a agenda, mas não para marcar.";
+
   const motivoBloqueio = semFuncionarias
     ? semServicos
       ? "Para marcar, cria primeiro as funcionárias e os serviços."
@@ -225,6 +232,18 @@ function App() {
       />
 
       <main className={`conteudo ${separador === "agenda" ? "conteudo-agenda" : ""}`}>
+        {semLigacao ? (
+          <div className="faixa-offline" role="status">
+            <span>
+              Sem internet. Estás a ver a agenda guardada neste aparelho
+              {salao.guardadoEm ? ` às ${horaLocal(new Date(salao.guardadoEm))}` : ""}; para
+              marcar, é preciso ligação.
+            </span>
+            <button type="button" onClick={() => salao.recarregarAgenda()}>
+              Tentar outra vez
+            </button>
+          </div>
+        ) : null}
         {faltaCatalogo && !salao.aCarregar ? (
           <div className="barra-info">
             <span>{eGerente ? motivoBloqueio : "Ainda não há funcionárias ou serviços. Pede à gerência para os criar."}</span>
@@ -247,8 +266,8 @@ function App() {
             funcionarios={salao.funcionarios}
             servicos={salao.servicos}
             configuracoes={salao.configuracoes}
-            bloqueado={faltaCatalogo}
-            motivoBloqueio={motivoBloqueio}
+            bloqueado={faltaCatalogo || semLigacao}
+            motivoBloqueio={semLigacao ? motivoSemLigacao : motivoBloqueio}
             onMudarDia={setDia}
             onEscolherFuncionaria={escolherFuncionaria}
             onAbrirNovo={abrirNovo}
@@ -265,8 +284,8 @@ function App() {
             funcionarios={salao.funcionarios}
             servicos={salao.servicos}
             configuracoes={salao.configuracoes}
-            bloqueado={faltaCatalogo}
-            motivoBloqueio={motivoBloqueio}
+            bloqueado={faltaCatalogo || semLigacao}
+            motivoBloqueio={semLigacao ? motivoSemLigacao : motivoBloqueio}
             onMudarDia={setDia}
             onMudarVista={setVista}
             onEscolherFuncionaria={escolherFuncionaria}

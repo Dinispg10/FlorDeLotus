@@ -368,6 +368,13 @@ export default function FuncionariaModal({
           </>
         )}
       </section>
+
+      {/* No fim da janela: depois das folgas/histórico, para não ser preciso voltar ao topo. */}
+      <div className="rodape-modal">
+        <button type="button" className="ghost-button" onClick={onFechar}>
+          Fechar
+        </button>
+      </div>
     </Modal>
   );
 }
