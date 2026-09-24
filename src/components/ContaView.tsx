@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { supabase } from "../lib/supabase";
+import ConfirmarModal from "./ConfirmarModal";
 
 type Props = {
   email: string;
@@ -31,10 +32,27 @@ const traduzirErro = (mensagem: string) => {
  */
 export default function ContaView({ email, onAviso }: Props) {
   const [nova, setNova] = useState("");
+  const [confirmarSaida, setConfirmarSaida] = useState(false);
+  const [aSair, setASair] = useState(false);
   const [repetida, setRepetida] = useState("");
   const [mostrar, setMostrar] = useState(false);
   const [erro, setErro] = useState("");
   const [aGuardar, setAGuardar] = useState(false);
+
+  /** Fecha a sessão em todo o lado (aparelho perdido, alguém que saiu da equipa). */
+  const terminarTodasAsSessoes = async () => {
+    if (!supabase) return;
+    setASair(true);
+    const { error } = await supabase.auth.signOut({ scope: "global" });
+    if (error) {
+      setASair(false);
+      setConfirmarSaida(false);
+      setErro(traduzirErro(error.message));
+      return;
+    }
+    // A app volta sozinha ao ecrã de entrada assim que a sessão desaparece.
+    onAviso("Sessão terminada em todos os aparelhos.");
+  };
 
   const guardar = async (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
@@ -136,6 +154,40 @@ export default function ContaView({ email, onAviso }: Props) {
           </button>
         </div>
       </form>
+
+      <section className="seccao-sessoes">
+        <h3>Sessões</h3>
+        <p className="dica">
+          Fecha esta conta em todos os aparelhos onde esteja aberta: o computador do salão,
+          telemóveis, um telemóvel perdido. Depois é preciso voltar a entrar em cada um.
+        </p>
+        <button type="button" className="danger-button" onClick={() => setConfirmarSaida(true)}>
+          Terminar sessão em todos os aparelhos
+        </button>
+      </section>
+
+      {confirmarSaida ? (
+        <ConfirmarModal
+          titulo="Terminar sessão em todos os aparelhos?"
+          textoConfirmar="Sim, terminar"
+          textoAProcessar="A terminar..."
+          aProcessar={aSair}
+          onConfirmar={terminarTodasAsSessoes}
+          onVoltar={() => setConfirmarSaida(false)}
+        >
+          <p>
+            <strong>{email}</strong>
+          </p>
+          <p>
+            Esta conta sai de todos os aparelhos, incluindo este. Nada se perde: as marcações
+            e os clientes ficam como estão.
+          </p>
+          <p>
+            Se foi um telemóvel perdido, muda também a palavra-passe aqui antes de voltar a
+            entrar noutro lado.
+          </p>
+        </ConfirmarModal>
+      ) : null}
     </div>
   );
 }

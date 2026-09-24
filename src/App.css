@@ -3406,3 +3406,20 @@ button.cabecalho-coluna:hover {
 .aviso-retirados .botao-texto {
   margin: 0 0 0 auto;
 }
+
+.seccao-sessoes {
+  width: 100%;
+  max-width: 420px;
+  margin-top: 26px;
+  padding-top: 18px;
+  border-top: 1px solid var(--linha);
+}
+
+.seccao-sessoes h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+
+.seccao-sessoes .dica {
+  margin-bottom: 12px;
+}
