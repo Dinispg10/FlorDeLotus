@@ -1691,6 +1691,12 @@ button.cabecalho-coluna:hover {
   font-weight: 600;
 }
 
+/* O mesmo aviso, depois de travar a gravação: passa a erro, sem repetir o texto. */
+.aviso-conflito.impede {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
 /* ---------------- Serviços de uma visita ---------------- */
 
 .lista-servicos {
@@ -3263,12 +3269,16 @@ button.cabecalho-coluna:hover {
     width: 100%;
   }
 
+  /* Quatro separadores não cabem numa linha: ficam dois em cada. */
   .sub-abas {
     width: 100%;
+    flex-wrap: wrap;
   }
 
   .sub-abas button {
-    flex: 1;
+    flex: 1 1 40%;
+    padding: 0.5rem 0.4rem;
+    font-size: 0.82rem;
   }
 
   /* Estatísticas mais compactas. */

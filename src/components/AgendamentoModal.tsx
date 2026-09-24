@@ -162,6 +162,7 @@ export default function AgendamentoModal({
   );
 
   const [retiradas, setRetiradas] = useState<LinhaServico[]>([]);
+  const [tentouGuardar, setTentouGuardar] = useState(false);
   const [erro, setErro] = useState("");
   const [aGuardar, setAGuardar] = useState(false);
   const [confirmarCancelar, setConfirmarCancelar] = useState(false);
@@ -315,6 +316,10 @@ export default function AgendamentoModal({
     setErro("");
   };
 
+  useEffect(() => {
+    setTentouGuardar(false);
+  }, [problema]);
+
   const alterarLinha = (chave: string, mudanca: Partial<LinhaServico>) =>
     setLinhas((anteriores) =>
       anteriores.map((linha) => (linha.chave === chave ? { ...linha, ...mudanca } : linha)),
@@ -385,8 +390,10 @@ export default function AgendamentoModal({
       }
     }
 
+    // O aviso já está à vista por cima dos botões; em vez de repetir o mesmo texto
+    // numa segunda linha, o aviso passa a vermelho.
     if (problema) {
-      setErro(problema);
+      setTentouGuardar(true);
       return;
     }
 
@@ -665,7 +672,7 @@ export default function AgendamentoModal({
           </label>
 
           {problema ? (
-            <p className="aviso-conflito" role="alert">
+            <p className={`aviso-conflito ${tentouGuardar ? "impede" : ""}`} role="alert">
               ⚠ {problema}
             </p>
           ) : null}

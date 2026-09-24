@@ -11,6 +11,9 @@ const MINIMO = 8;
 
 const traduzirErro = (mensagem: string) => {
   const texto = mensagem.toLowerCase();
+  if (texto.includes("invalid login credentials")) {
+    return "A palavra-passe atual não está certa.";
+  }
   if (texto.includes("different from the old")) {
     return "A palavra-passe nova tem de ser diferente da atual.";
   }
@@ -31,6 +34,7 @@ const traduzirErro = (mensagem: string) => {
  * palavra-passe provisória; aqui troca-se por uma que só a própria pessoa sabe.
  */
 export default function ContaView({ email, onAviso }: Props) {
+  const [atual, setAtual] = useState("");
   const [nova, setNova] = useState("");
   const [confirmarSaida, setConfirmarSaida] = useState(false);
   const [aSair, setASair] = useState(false);
@@ -58,6 +62,10 @@ export default function ContaView({ email, onAviso }: Props) {
     evento.preventDefault();
     setErro("");
 
+    if (!atual) {
+      setErro("Escreve a palavra-passe atual.");
+      return;
+    }
     if (nova.length < MINIMO) {
       setErro(`A palavra-passe tem de ter pelo menos ${MINIMO} caracteres.`);
       return;
@@ -69,6 +77,19 @@ export default function ContaView({ email, onAviso }: Props) {
     if (!supabase) return;
 
     setAGuardar(true);
+
+    // Confirmar quem está do outro lado: sem a palavra-passe atual, ninguém muda a
+    // conta de outra pessoa a partir de uma sessão deixada aberta.
+    const { error: erroAtual } = await supabase.auth.signInWithPassword({
+      email,
+      password: atual,
+    });
+    if (erroAtual) {
+      setAGuardar(false);
+      setErro(traduzirErro(erroAtual.message));
+      return;
+    }
+
     const { error } = await supabase.auth.updateUser({ password: nova });
     setAGuardar(false);
 
@@ -77,6 +98,7 @@ export default function ContaView({ email, onAviso }: Props) {
       return;
     }
 
+    setAtual("");
     setNova("");
     setRepetida("");
     onAviso("Palavra-passe mudada. Da próxima vez entra com a nova.");
@@ -95,6 +117,30 @@ export default function ContaView({ email, onAviso }: Props) {
         <h3>Mudar a palavra-passe</h3>
 
         <label>
+          Palavra-passe atual
+          <span className="campo-password">
+            <input
+              type={mostrar ? "text" : "password"}
+              autoComplete="current-password"
+              value={atual}
+              onChange={(evento) => {
+                setAtual(evento.target.value);
+                setErro("");
+              }}
+              required
+            />
+            <button
+              type="button"
+              className="mostrar-password"
+              onClick={() => setMostrar((anterior) => !anterior)}
+              aria-pressed={mostrar}
+            >
+              {mostrar ? "Esconder" : "Mostrar"}
+            </button>
+          </span>
+        </label>
+
+        <label>
           Palavra-passe nova
           <span className="campo-password">
             <input
@@ -110,7 +156,7 @@ export default function ContaView({ email, onAviso }: Props) {
             <button
               type="button"
               className="mostrar-password"
-              onClick={() => setMostrar((atual) => !atual)}
+              onClick={() => setMostrar((anterior) => !anterior)}
               aria-pressed={mostrar}
             >
               {mostrar ? "Esconder" : "Mostrar"}
@@ -134,7 +180,7 @@ export default function ContaView({ email, onAviso }: Props) {
             <button
               type="button"
               className="mostrar-password"
-              onClick={() => setMostrar((atual) => !atual)}
+              onClick={() => setMostrar((anterior) => !anterior)}
               aria-pressed={mostrar}
             >
               {mostrar ? "Esconder" : "Mostrar"}
