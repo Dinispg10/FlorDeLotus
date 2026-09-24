@@ -666,26 +666,34 @@ const listarDiasEspeciais = async (): Promise<DiaEspecial[]> => {
   return (data ?? []).map((item) => paraDiaEspecial(item as RawDiaEspecial));
 };
 
-export const criarDiaEspecial = async (dados: Omit<DiaEspecial, "id">) => {
-  const { error } = await client()
-    .from("dias_especiais")
-    .insert({
-      data: dados.data,
-      nome: dados.nome.trim(),
-      aberto: dados.aberto,
-      hora_inicio: dados.aberto ? dados.inicio : null,
-      hora_fim: dados.aberto ? dados.fim : null,
-    });
+/** Um feriado (um dia) ou umas férias (vários dias seguidos, todos com o mesmo nome). */
+export const criarDiasEspeciais = async (dias: Omit<DiaEspecial, "id">[]) => {
+  if (dias.length === 0) return;
+
+  const { error } = await client().from("dias_especiais").insert(
+    dias.map((dia) => ({
+      data: dia.data,
+      nome: dia.nome.trim(),
+      aberto: dia.aberto,
+      hora_inicio: dia.aberto ? dia.inicio : null,
+      hora_fim: dia.aberto ? dia.fim : null,
+    })),
+  );
 
   if (error?.code === "23505") {
-    throw new Error("Esse dia já está na lista. Apaga-o primeiro para o mudar.");
+    throw new Error(
+      dias.length === 1
+        ? "Esse dia já está na lista. Apaga-o primeiro para o mudar."
+        : "Um dos dias deste período já está na lista. Apaga-o primeiro para o mudar.",
+    );
   }
   falhar("Não foi possível guardar o dia", error);
 };
 
-export const apagarDiaEspecial = async (id: string) => {
-  const { error } = await client().from("dias_especiais").delete().eq("id", id);
-  falhar("Não foi possível apagar o dia", error);
+export const apagarDiasEspeciais = async (ids: string[]) => {
+  if (ids.length === 0) return;
+  const { error } = await client().from("dias_especiais").delete().in("id", ids);
+  falhar("Não foi possível apagar", error);
 };
 
 export const carregarConfiguracoes = async (): Promise<Configuracoes> => {

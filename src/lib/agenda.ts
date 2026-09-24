@@ -2,6 +2,7 @@ import {
   combinarDataHora,
   diaDaSemanaISO,
   minutosDesdeMeiaNoite,
+  somarDias,
   somarMinutos,
 } from "./datas";
 import {
@@ -10,6 +11,7 @@ import {
   type Agendamento,
   type Ausencia,
   type Configuracoes,
+  type DiaEspecial,
   type HorarioDia,
 } from "./types";
 
@@ -164,6 +166,57 @@ export const horarioDoDia = (configuracoes: Configuracoes, data: string): Horari
     return { aberto: especial.aberto, inicio: especial.inicio, fim: especial.fim };
   }
   return configuracoes.horarioSemanal[diaDaSemanaISO(data)];
+};
+
+/** Um feriado (um dia) ou umas férias (dias seguidos com o mesmo nome e horário). */
+export type Periodo = {
+  ids: string[];
+  inicio: string;
+  fim: string;
+  nome: string;
+  aberto: boolean;
+  horaInicio: string;
+  horaFim: string;
+};
+
+/** Junta numa linha só os dias seguidos com o mesmo nome e o mesmo horário. */
+export const agruparEmPeriodos = (dias: DiaEspecial[]): Periodo[] => {
+  const ordenados = [...dias].sort((a, b) => a.data.localeCompare(b.data));
+  const periodos: Periodo[] = [];
+
+  for (const dia of ordenados) {
+    const anterior = periodos[periodos.length - 1];
+    const seguido =
+      anterior &&
+      anterior.nome === dia.nome &&
+      anterior.aberto === dia.aberto &&
+      anterior.horaInicio === dia.inicio &&
+      anterior.horaFim === dia.fim &&
+      somarDias(anterior.fim, 1) === dia.data;
+
+    if (seguido) {
+      anterior.fim = dia.data;
+      anterior.ids.push(dia.id);
+    } else {
+      periodos.push({
+        ids: [dia.id],
+        inicio: dia.data,
+        fim: dia.data,
+        nome: dia.nome,
+        aberto: dia.aberto,
+        horaInicio: dia.inicio,
+        horaFim: dia.fim,
+      });
+    }
+  }
+
+  return periodos;
+};
+
+export const diasEntre = (de: string, ate: string) => {
+  const dias: string[] = [];
+  for (let dia = de; dia <= ate; dia = somarDias(dia, 1)) dias.push(dia);
+  return dias;
 };
 
 /** "Natal · fechado", "Véspera de Natal · 09:00-13:00". */

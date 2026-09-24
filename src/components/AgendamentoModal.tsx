@@ -645,21 +645,20 @@ export default function AgendamentoModal({
             )}
           </div>
 
-          {emEdicao ? (
-            <label>
-              Estado
-              <select
-                value={status}
-                onChange={(evento) => setStatus(evento.target.value as StatusAgendamento)}
-              >
-                {STATUS_AGENDAMENTO.map((valor) => (
-                  <option key={valor} value={valor}>
-                    {ROTULO_STATUS[valor]}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
+          {/* Por omissão, confirmada; pendente serve para quem ainda vai confirmar. */}
+          <label>
+            Estado
+            <select
+              value={status}
+              onChange={(evento) => setStatus(evento.target.value as StatusAgendamento)}
+            >
+              {STATUS_AGENDAMENTO.map((valor) => (
+                <option key={valor} value={valor}>
+                  {ROTULO_STATUS[valor]}
+                </option>
+              ))}
+            </select>
+          </label>
 
           <label>
             Observações

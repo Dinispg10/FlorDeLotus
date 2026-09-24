@@ -2563,7 +2563,7 @@ button.cabecalho-coluna:hover {
 }
 
 .dia-especial-data {
-  flex: 0 0 96px;
+  flex: 0 0 132px;
   display: flex;
   flex-direction: column;
   font-weight: 700;
