@@ -208,7 +208,7 @@ function App() {
   const faltaCatalogo = semFuncionarias || semServicos;
 
   // Sem internet: vê-se a última agenda guardada neste aparelho, mas não se marca.
-  const semLigacao = salao.guardadoEm !== null;
+  const semLigacao = salao.semLigacao;
   const motivoSemLigacao = "Sem internet: dá para ver a agenda, mas não para marcar.";
 
   const motivoBloqueio = semFuncionarias
@@ -235,9 +235,11 @@ function App() {
         {semLigacao ? (
           <div className="faixa-offline" role="status">
             <span>
-              Sem internet. Estás a ver a agenda guardada neste aparelho
-              {salao.guardadoEm ? ` às ${horaLocal(new Date(salao.guardadoEm))}` : ""}; para
-              marcar, é preciso ligação.
+              {salao.guardadoEm
+                ? `Sem internet. Estás a ver a agenda guardada neste aparelho às ${horaLocal(
+                    new Date(salao.guardadoEm),
+                  )}; para marcar, é preciso ligação.`
+                : "Sem internet. Esta semana ainda não tinha sido aberta neste aparelho, por isso aparece vazia."}
             </span>
             <button type="button" onClick={() => salao.recarregarAgenda()}>
               Tentar outra vez

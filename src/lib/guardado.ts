@@ -56,3 +56,29 @@ export const pareceFaltaDeRede = (erro: unknown) => {
     mensagem.includes("load failed")
   );
 };
+
+/** Fim do mundo à espera: 8 segundos chegam para uma agenda de uma semana. */
+export const LIMITE_MS = 8000;
+
+/**
+ * Uma rede má (Wi-Fi ligado mas sem internet) não dá erro: fica à espera para sempre.
+ * Isto desiste ao fim de algum tempo, para a app poder mostrar o que tem guardado em
+ * vez de ficar em "A carregar...".
+ */
+export const comTempoLimite = <T>(promessa: Promise<T>, limiteMs = LIMITE_MS): Promise<T> =>
+  new Promise((resolver, rejeitar) => {
+    const relogio = setTimeout(
+      () => rejeitar(new Error("Sem ligação ao servidor. Verifica a internet e tenta outra vez.")),
+      limiteMs,
+    );
+    promessa.then(
+      (valor) => {
+        clearTimeout(relogio);
+        resolver(valor);
+      },
+      (erro) => {
+        clearTimeout(relogio);
+        rejeitar(erro);
+      },
+    );
+  });

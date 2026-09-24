@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import * as api from "../lib/api";
 import { supabase } from "../lib/supabase";
 import { inicioDaSemana, somarDias } from "../lib/datas";
-import { guardar, ler, pareceFaltaDeRede } from "../lib/guardado";
+import { comTempoLimite, guardar, ler, pareceFaltaDeRede } from "../lib/guardado";
 import {
   CONFIGURACOES_PADRAO,
   type Agendamento,
@@ -42,7 +42,10 @@ export function useSalao(ativo: boolean, diaSelecionado: string) {
   const [configuracoes, setConfiguracoes] = useState<Configuracoes>(CONFIGURACOES_PADRAO);
   const [aCarregar, setACarregar] = useState(true);
   const [erro, setErro] = useState("");
-  // Sem internet: mostra-se a última agenda guardada neste aparelho, e diz-se quando é.
+  // Sem internet: mostra-se a última agenda guardada neste aparelho. São duas coisas
+  // diferentes: estar sem ligação, e a hora a que os dados foram guardados (que pode
+  // não existir, numa semana nunca aberta).
+  const [semLigacao, setSemLigacao] = useState(false);
   const [guardadoEm, setGuardadoEm] = useState<string | null>(null);
 
   const segunda = inicioDaSemana(diaSelecionado);
@@ -51,12 +54,14 @@ export function useSalao(ativo: boolean, diaSelecionado: string) {
   const carregarBase = useCallback(async () => {
     if (!ativo) return;
     try {
-      const [listaFuncionarios, listaServicos, listaClientes, config] = await Promise.all([
-        api.listarFuncionarios(),
-        api.listarServicos(),
-        api.listarClientes(),
-        api.carregarConfiguracoes(),
-      ]);
+      const [listaFuncionarios, listaServicos, listaClientes, config] = await comTempoLimite(
+        Promise.all([
+          api.listarFuncionarios(),
+          api.listarServicos(),
+          api.listarClientes(),
+          api.carregarConfiguracoes(),
+        ]),
+      );
       setFuncionarios(listaFuncionarios);
       setServicos(listaServicos);
       setClientes(listaClientes);
@@ -67,19 +72,21 @@ export function useSalao(ativo: boolean, diaSelecionado: string) {
         clientes: listaClientes,
         configuracoes: config,
       });
-      setGuardadoEm(null);
+      setSemLigacao(false);
       setErro("");
     } catch (causa) {
-      const copia = pareceFaltaDeRede(causa) ? ler<BaseGuardada>("base") : null;
-      if (!copia) {
+      if (!pareceFaltaDeRede(causa)) {
         setErro(mensagemDeErro(causa));
         return;
       }
-      setFuncionarios(copia.dados.funcionarios);
-      setServicos(copia.dados.servicos);
-      setClientes(copia.dados.clientes);
-      setConfiguracoes(copia.dados.configuracoes);
-      setGuardadoEm(copia.quando);
+      const copia = ler<BaseGuardada>("base");
+      if (copia) {
+        setFuncionarios(copia.dados.funcionarios);
+        setServicos(copia.dados.servicos);
+        setClientes(copia.dados.clientes);
+        setConfiguracoes(copia.dados.configuracoes);
+      }
+      setSemLigacao(true);
       setErro("");
     }
   }, [ativo]);
@@ -87,33 +94,27 @@ export function useSalao(ativo: boolean, diaSelecionado: string) {
   const carregarAgenda = useCallback(async () => {
     if (!ativo) return;
     try {
-      const [marcacoes, folgas] = await Promise.all([
-        api.listarAgendamentos(segunda, domingo),
-        api.listarAusencias(segunda, domingo),
-      ]);
+      const [marcacoes, folgas] = await comTempoLimite(
+        Promise.all([api.listarAgendamentos(segunda, domingo), api.listarAusencias(segunda, domingo)]),
+      );
       setAgendamentos(marcacoes);
       setAusencias(folgas);
       guardar<SemanaGuardada>(`semana:${segunda}`, { agendamentos: marcacoes, ausencias: folgas });
       setGuardadoEm(null);
+      setSemLigacao(false);
       setErro("");
     } catch (causa) {
-      // Sem rede: a semana que estiver guardada neste aparelho. Uma semana nunca vista
-      // aparece vazia, com o aviso de que está sem ligação.
-      const copia = pareceFaltaDeRede(causa) ? ler<SemanaGuardada>(`semana:${segunda}`) : null;
-      if (!copia) {
-        if (pareceFaltaDeRede(causa)) {
-          setAgendamentos([]);
-          setAusencias([]);
-          setGuardadoEm(new Date().toISOString());
-          setErro("");
-          return;
-        }
+      if (!pareceFaltaDeRede(causa)) {
         setErro(mensagemDeErro(causa));
         return;
       }
-      setAgendamentos(copia.dados.agendamentos);
-      setAusencias(copia.dados.ausencias);
-      setGuardadoEm(copia.quando);
+      // Sem rede: a semana que estiver guardada neste aparelho. Uma semana nunca aberta
+      // aparece vazia, e a faixa diz só que está sem ligação (sem hora nenhuma).
+      const copia = ler<SemanaGuardada>(`semana:${segunda}`);
+      setAgendamentos(copia ? copia.dados.agendamentos : []);
+      setAusencias(copia ? copia.dados.ausencias : []);
+      setGuardadoEm(copia ? copia.quando : null);
+      setSemLigacao(true);
       setErro("");
     }
   }, [ativo, segunda, domingo]);
@@ -246,6 +247,7 @@ export function useSalao(ativo: boolean, diaSelecionado: string) {
     setServicos,
     setClientes,
     setAusencias,
+    semLigacao,
     guardadoEm,
     guardarNaLista,
     removerDaLista,

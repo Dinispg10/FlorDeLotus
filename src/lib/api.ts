@@ -16,6 +16,7 @@ import {
   type TipoAusencia,
 } from "./types";
 import { chaveData, combinarDataHora, horaLocal } from "./datas";
+import { comTempoLimite } from "./guardado";
 
 const client = () => {
   if (!supabase) {
@@ -453,14 +454,19 @@ export const guardarVisita = async (dados: {
   marcacoes: (DadosAgendamento & { id?: string })[];
   apagar: string[];
 }): Promise<Agendamento[]> => {
-  const { error } = await client().rpc("guardar_visita", {
-    p_visita_id: dados.visitaId,
-    p_marcacoes: dados.marcacoes.map((item) => ({
-      ...(item.id ? { id: item.id } : {}),
-      ...corpoAgendamento(item),
-    })),
-    p_apagar: dados.apagar,
-  });
+  // Com a rede má, um pedido fica pendurado sem dar erro: mais vale dizer que não deu.
+  const { error } = await comTempoLimite(
+    Promise.resolve(
+      client().rpc("guardar_visita", {
+        p_visita_id: dados.visitaId,
+        p_marcacoes: dados.marcacoes.map((item) => ({
+          ...(item.id ? { id: item.id } : {}),
+          ...corpoAgendamento(item),
+        })),
+        p_apagar: dados.apagar,
+      }),
+    ),
+  );
 
   falhar("Não foi possível guardar a marcação", error);
   // A função devolve as linhas sem o nome do cliente; relê-se com ele.
