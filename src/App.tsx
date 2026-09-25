@@ -4,11 +4,12 @@ import "./App.css";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import * as api from "./lib/api";
 import { dataPorExtenso, hoje, horaLocal } from "./lib/datas";
-import { esquecerTudo } from "./lib/guardado";
+import { comTempoLimite, esquecerTudo } from "./lib/guardado";
 import type { Agendamento, Cliente } from "./lib/types";
 import { useSalao } from "./hooks/useSalao";
 import { useEcraPequeno } from "./hooks/useEcraPequeno";
 import Login from "./components/Login";
+import EcraEspera from "./components/EcraEspera";
 import TopNav, { NavegacaoFundo, type Separador } from "./components/TopNav";
 import AgendaView, { type Vista } from "./components/AgendaView";
 import AgendaTelemovel from "./components/AgendaTelemovel";
@@ -49,10 +50,12 @@ function App() {
       return;
     }
 
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setSessaoVerificada(true);
-    });
+    // Sem rede, esta pergunta pode ficar pendurada: ao fim do tempo do costume,
+    // segue-se com o que houver (a sessão guardada no aparelho, ou o ecrã de entrada).
+    comTempoLimite(supabase.auth.getSession())
+      .then(({ data }) => setSession(data.session))
+      .catch(() => {})
+      .finally(() => setSessaoVerificada(true));
 
     const { data: listener } = supabase.auth.onAuthStateChange((_evento, proximaSessao) => {
       setSession(proximaSessao);
@@ -193,9 +196,7 @@ function App() {
   if (!sessaoVerificada) {
     return (
       <main className="login-shell">
-        <div className="login-card">
-          <p className="login-note">A ligar ao salão...</p>
-        </div>
+        <EcraEspera texto="A ligar ao salão..." />
       </main>
     );
   }
@@ -258,7 +259,7 @@ function App() {
         ) : null}
 
         {salao.aCarregar ? (
-          <div className="estado-vazio">A carregar a agenda...</div>
+          <EcraEspera texto="A carregar a agenda..." />
         ) : separador === "agenda" && telemovel ? (
           <AgendaTelemovel
             dia={dia}

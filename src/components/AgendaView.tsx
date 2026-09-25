@@ -31,6 +31,7 @@ import {
 } from "../lib/types";
 import type { PreDefinicao } from "./AgendamentoModal";
 import PesquisaMarcacoes from "./PesquisaMarcacoes";
+import ListaSemana from "./ListaSemana";
 
 /**
  * Espaço por hora, em pixels por minuto. O salão escolhe o nível com os botões
@@ -468,87 +469,19 @@ export default function AgendaView({
           Ainda não há funcionárias ativas. Podes adicioná-las em Definições → Funcionárias.
         </div>
       ) : emLista ? (
-        <div className="grelha-lista">
-          {colunas.map((coluna) => {
-            const ordenadas = [...coluna.marcacoes].sort((a, b) => a.inicioMs - b.inicioMs);
-            const folgas = ausenciasDoDia(ausencias, null, coluna.data);
-            const horario = horarioDoDia(configuracoes, coluna.data);
-
-            return (
-              <div
-                key={coluna.chave}
-                className={`coluna-dia ${coluna.destacada ? "coluna-hoje" : ""}`}
-              >
-                <button
-                  type="button"
-                  className="cabecalho-coluna clicavel"
-                  onClick={() => {
-                    onMudarDia(coluna.data);
-                    onMudarVista("dia");
-                  }}
-                  title="Ver este dia hora a hora"
-                >
-                  <h3>{coluna.titulo}</h3>
-                  <p>{coluna.subtitulo}</p>
-                </button>
-
-                <div className="lista-dia">
-                  {!horario.aberto ? (
-                    <p className="dia-fechado-nota">
-                      {diaEspecialDe(configuracoes, coluna.data)
-                        ? `${diaEspecialDe(configuracoes, coluna.data)?.nome} · fechado`
-                        : "Fechado"}
-                    </p>
-                  ) : null}
-
-                  {folgas.map((ausencia) => {
-                    const dona = funcionarios.find((item) => item.id === ausencia.funcionarioId);
-                    return (
-                      <p key={ausencia.id} className={`nota-folga ${ausencia.tipo}`}>
-                        {dona?.nome ?? ""} · {ROTULO_AUSENCIA[ausencia.tipo].toLowerCase()}
-                      </p>
-                    );
-                  })}
-
-                  {ordenadas.length === 0 && horario.aberto ? (
-                    <p className="dia-sem-nada">—</p>
-                  ) : null}
-
-                  {ordenadas.map((marcacao) => {
-                    const servico = servicos.find((item) => item.id === marcacao.servicoId);
-                    const dona = funcionarios.find((item) => item.id === marcacao.funcionarioId);
-
-                    return (
-                      <button
-                        key={marcacao.id}
-                        type="button"
-                        className={`linha-marcacao estado-${marcacao.status}`}
-                        style={dona ? { borderLeftColor: dona.cor } : undefined}
-                        onClick={() => onAbrirExistente(marcacao)}
-                        title={[
-                          `${marcacao.inicio}-${marcacao.fim} · ${marcacao.cliente}`,
-                          servico ? `${servico.nome} (${marcacao.duracaoMinutos} min)` : "",
-                          dona ? dona.nome : "",
-                          marcacao.telefone,
-                          ROTULO_STATUS[marcacao.status],
-                        ]
-                          .filter(Boolean)
-                          .join(QUEBRA)}
-                      >
-                        <span className="linha-hora-texto">{marcacao.inicio}</span>
-                        <span className="linha-cliente">{marcacao.cliente}</span>
-                        <span
-                          className="ponto-cor"
-                          style={dona ? { background: dona.cor } : undefined}
-                        />
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <ListaSemana
+          dias={diasDaSemana}
+          funcionarios={ativas}
+          servicos={servicos}
+          agendamentos={visiveis}
+          ausencias={ausencias}
+          configuracoes={configuracoes}
+          onAbrirDia={(escolhido) => {
+            onMudarDia(escolhido);
+            onMudarVista("dia");
+          }}
+          onAbrirExistente={onAbrirExistente}
+        />
       ) : (
         <div className="grelha" ref={grelha}>
           <div className="coluna-horas">

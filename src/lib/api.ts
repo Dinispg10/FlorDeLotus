@@ -380,25 +380,33 @@ export const listarAgendamentos = async (
 /** As próximas marcações (ainda por acabar) de vários clientes, da mais cedo para a mais tarde. */
 export const proximasMarcacoesDe = async (clienteIds: string[]): Promise<Agendamento[]> => {
   if (clienteIds.length === 0) return [];
-  const { data, error } = await client()
-    .from("agendamentos")
-    .select(SELECT_AGENDAMENTO)
-    .in("cliente_id", clienteIds)
-    .gte("data_hora_fim", new Date().toISOString())
-    .order("data_hora_inicio", { ascending: true })
-    .limit(60);
+  const { data, error } = await comTempoLimite(
+    Promise.resolve(
+      client()
+        .from("agendamentos")
+        .select(SELECT_AGENDAMENTO)
+        .in("cliente_id", clienteIds)
+        .gte("data_hora_fim", new Date().toISOString())
+        .order("data_hora_inicio", { ascending: true })
+        .limit(60),
+    ),
+  );
 
   falhar("Não foi possível procurar as marcações", error);
   return (data ?? []).map((item) => paraAgendamento(item as unknown as RawAgendamento));
 };
 
 export const listarAgendamentosDoCliente = async (clienteId: string): Promise<Agendamento[]> => {
-  const { data, error } = await client()
-    .from("agendamentos")
-    .select(SELECT_AGENDAMENTO)
-    .eq("cliente_id", clienteId)
-    .neq("status", "cancelado")
-    .order("data_hora_inicio", { ascending: false });
+  const { data, error } = await comTempoLimite(
+    Promise.resolve(
+      client()
+        .from("agendamentos")
+        .select(SELECT_AGENDAMENTO)
+        .eq("cliente_id", clienteId)
+        .neq("status", "cancelado")
+        .order("data_hora_inicio", { ascending: false }),
+    ),
+  );
 
   falhar("Não foi possível carregar o histórico do cliente", error);
   return (data ?? []).map((item) => paraAgendamento(item as unknown as RawAgendamento));
@@ -435,11 +443,15 @@ const corpoAgendamento = (dados: DadosAgendamento) => {
 
 /** Todos os serviços de uma visita, pela ordem do dia. */
 export const listarDaVisita = async (visitaId: string): Promise<Agendamento[]> => {
-  const { data, error } = await client()
-    .from("agendamentos")
-    .select(SELECT_AGENDAMENTO)
-    .eq("visita_id", visitaId)
-    .order("data_hora_inicio", { ascending: true });
+  const { data, error } = await comTempoLimite(
+    Promise.resolve(
+      client()
+        .from("agendamentos")
+        .select(SELECT_AGENDAMENTO)
+        .eq("visita_id", visitaId)
+        .order("data_hora_inicio", { ascending: true }),
+    ),
+  );
 
   falhar("Não foi possível carregar a visita", error);
   return (data ?? []).map((item) => paraAgendamento(item as unknown as RawAgendamento));

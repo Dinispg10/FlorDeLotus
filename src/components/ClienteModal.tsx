@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import * as api from "../lib/api";
+import EcraEspera from "./EcraEspera";
+import { mensagemDeFalha } from "../lib/guardado";
 import { normalizarTelefone } from "../lib/agenda";
 import { dataCurta, formatarPreco } from "../lib/datas";
 import {
@@ -45,9 +47,7 @@ export default function ClienteModal({
     try {
       setHistorico(await api.listarAgendamentosDoCliente(cliente.id));
     } catch (causa) {
-      setErroHistorico(
-        causa instanceof Error ? causa.message : "Não foi possível carregar o histórico.",
-      );
+      setErroHistorico(mensagemDeFalha(causa, "Não foi possível carregar o histórico."));
     } finally {
       setACarregar(false);
     }
@@ -210,7 +210,7 @@ export default function ClienteModal({
           {erroHistorico ? (
             <p className="login-error">{erroHistorico}</p>
           ) : aCarregar ? (
-            <p className="dica">A carregar...</p>
+            <EcraEspera pequeno />
           ) : historico.length === 0 ? (
             <p className="dica">Este cliente ainda não tem marcações.</p>
           ) : (

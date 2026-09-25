@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as api from "../lib/api";
+import { mensagemDeFalha } from "../lib/guardado";
 import { normalizarTelefone, normalizarTexto } from "../lib/agenda";
 import { abreviaturaDiaSemana, dataCompacta, hoje } from "../lib/datas";
 import type { Agendamento, Cliente, Funcionario, Servico } from "../lib/types";
@@ -71,7 +72,7 @@ export default function PesquisaMarcacoes({ clientes, funcionarios, servicos, on
           setErro("");
         }
       } catch (causa) {
-        if (ativo) setErro(causa instanceof Error ? causa.message : "Não foi possível procurar.");
+        if (ativo) setErro(mensagemDeFalha(causa, "Não foi possível procurar."));
       } finally {
         if (ativo) setACarregar(false);
       }

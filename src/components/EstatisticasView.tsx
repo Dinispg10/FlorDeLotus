@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import * as api from "../lib/api";
+import EcraEspera from "./EcraEspera";
+import { mensagemDeFalha } from "../lib/guardado";
 import { formatarPreco, hoje } from "../lib/datas";
 import {
   criarPeriodo,
@@ -199,6 +201,7 @@ export default function EstatisticasView({ configuracoes, funcionarios, servicos
   const [ausencias, setAusencias] = useState<Ausencia[]>([]);
   const [aCarregar, setACarregar] = useState(true);
   const [carregouUmaVez, setCarregouUmaVez] = useState(false);
+  const [erroDoPeriodo, setErroDoPeriodo] = useState("");
 
   const periodo = useMemo(() => criarPeriodo(tipo, referencia), [tipo, referencia]);
 
@@ -213,8 +216,9 @@ export default function EstatisticasView({ configuracoes, funcionarios, servicos
       setMarcacoes(lista);
       setAusencias(folgas);
       setCarregouUmaVez(true);
+      setErroDoPeriodo("");
     } catch (causa) {
-      onErro(causa instanceof Error ? causa.message : "Não foi possível carregar as estatísticas.");
+      setErroDoPeriodo(mensagemDeFalha(causa, "Não foi possível carregar as estatísticas."));
     } finally {
       setACarregar(false);
     }
@@ -318,8 +322,10 @@ export default function EstatisticasView({ configuracoes, funcionarios, servicos
 
       {/* Ao mudar de período, o anterior fica esbatido em vez de a página piscar. */}
       <div className={`conteudo-estatisticas ${aCarregar && carregouUmaVez ? "a-atualizar" : ""}`}>
-        {!carregouUmaVez ? (
-          <div className="estado-vazio">A carregar as estatísticas...</div>
+        {erroDoPeriodo ? (
+          <div className="estado-vazio">{erroDoPeriodo}</div>
+        ) : !carregouUmaVez ? (
+          <EcraEspera texto="A carregar as estatísticas..." />
         ) : (
           <>
             <div className="stats-grid">

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import * as api from "../lib/api";
+import { mensagemDeFalha } from "../lib/guardado";
 import {
   ausenciaQueBloqueia,
   encadearServicos,
@@ -184,7 +185,7 @@ export default function AgendamentoModal({
       })
       .catch((causa) => {
         if (ativo) {
-          setErro(causa instanceof Error ? causa.message : "Não foi possível carregar a visita.");
+          setErro(mensagemDeFalha(causa, "Não foi possível carregar a visita."));
         }
       })
       .finally(() => {

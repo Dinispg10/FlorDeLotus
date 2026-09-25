@@ -57,8 +57,12 @@ export const pareceFaltaDeRede = (erro: unknown) => {
   );
 };
 
-/** Fim do mundo à espera: 8 segundos chegam para uma agenda de uma semana. */
-export const LIMITE_MS = 8000;
+/**
+ * Fim do mundo à espera. Uma semana de agenda leva menos de um segundo numa rede
+ * normal; 5 segundos dão folga para uma rede fraca sem deixar ninguém a olhar para o
+ * ecrã sem saber o que se passa.
+ */
+export const LIMITE_MS = 5000;
 
 /**
  * Uma rede má (Wi-Fi ligado mas sem internet) não dá erro: fica à espera para sempre.
@@ -82,3 +86,15 @@ export const comTempoLimite = <T>(promessa: Promise<T>, limiteMs = LIMITE_MS): P
       },
     );
   });
+
+/** O que se mostra quando um dado secundário não veio por falta de rede. */
+export const SEM_REDE = "Sem internet. Isto aparece assim que a ligação voltar.";
+
+/**
+ * A mensagem a mostrar a quem está ao balcão: se foi da rede, um aviso calmo; se foi
+ * outra coisa (permissões, dados), o erro verdadeiro, que é o que ajuda a resolver.
+ */
+export const mensagemDeFalha = (causa: unknown, seNaoForRede: string) => {
+  if (pareceFaltaDeRede(causa)) return SEM_REDE;
+  return causa instanceof Error ? causa.message : seNaoForRede;
+};

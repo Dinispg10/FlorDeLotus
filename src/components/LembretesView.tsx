@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import * as api from "../lib/api";
+import EcraEspera from "./EcraEspera";
+import { mensagemDeFalha } from "../lib/guardado";
 import { dataPorExtenso, hoje, somarDias } from "../lib/datas";
 import {
   agruparEmVisitas,
@@ -43,6 +45,7 @@ export default function LembretesView({
   const [dia, setDia] = useState(() => somarDias(hoje(), 1));
   const [marcacoes, setMarcacoes] = useState<Agendamento[]>([]);
   const [aCarregar, setACarregar] = useState(true);
+  const [erroDoDia, setErroDoDia] = useState("");
   const [modelo, setModelo] = useState(configuracoes.modeloLembrete);
   const [aGuardarModelo, setAGuardarModelo] = useState(false);
   const tatil = useMemo(ecraTatil, []);
@@ -52,8 +55,9 @@ export default function LembretesView({
     setACarregar(true);
     try {
       setMarcacoes(await api.listarAgendamentos(dia, dia));
+      setErroDoDia("");
     } catch (causa) {
-      onErro(causa instanceof Error ? causa.message : "Não foi possível carregar o dia.");
+      setErroDoDia(mensagemDeFalha(causa, "Não foi possível carregar o dia."));
     } finally {
       setACarregar(false);
     }
@@ -289,8 +293,10 @@ export default function LembretesView({
           ) : null}
         </div>
 
-        {aCarregar ? (
-          <div className="estado-vazio">A carregar...</div>
+        {erroDoDia ? (
+          <div className="estado-vazio">{erroDoDia}</div>
+        ) : aCarregar ? (
+          <EcraEspera />
         ) : visitas.length === 0 ? (
           <div className="estado-vazio">Não há marcações neste dia.</div>
         ) : (

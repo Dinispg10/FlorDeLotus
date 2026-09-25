@@ -784,7 +784,7 @@ input::-ms-clear {
   position: sticky;
   top: 0;
   z-index: 2;
-  height: 54px;
+  height: 66px;
   background: #fff;
   border-bottom: 1px solid var(--linha);
   padding: 8px 10px 0;
@@ -3467,4 +3467,357 @@ button.cabecalho-coluna:hover {
   padding: 0.35rem 0.8rem;
   font-weight: 700;
   font-size: 0.8rem;
+}
+
+/* ---------------- Ecrã de espera ---------------- */
+
+.espera {
+  flex: 1;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 30px 20px;
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+.espera p {
+  margin: 0;
+}
+
+.espera-flor {
+  width: 56px;
+  height: 56px;
+  fill: var(--roxo-suave);
+  animation: espera-rodar 1.6s ease-in-out infinite;
+  transform-origin: 50% 50%;
+}
+
+.espera.pequena {
+  min-height: 0;
+  padding: 16px;
+  gap: 10px;
+  font-size: 0.82rem;
+}
+
+.espera.pequena .espera-flor {
+  width: 34px;
+  height: 34px;
+}
+
+/* No ecrã de entrada (fundo roxo), a flor é clara. */
+.login-shell .espera {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.login-shell .espera-flor {
+  fill: rgba(167, 243, 208, 0.9);
+}
+
+@keyframes espera-rodar {
+  0% {
+    transform: rotate(0deg) scale(0.92);
+    opacity: 0.55;
+  }
+  50% {
+    transform: rotate(180deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(360deg) scale(0.92);
+    opacity: 0.55;
+  }
+}
+
+/* Quem prefere menos movimento: a flor fica quieta, só a pulsar de leve. */
+@media (prefers-reduced-motion: reduce) {
+  .espera-flor {
+    animation: espera-pulsar 2s ease-in-out infinite;
+  }
+
+  @keyframes espera-pulsar {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+}
+
+/* ---------------- Ecrã de espera ---------------- */
+
+.espera {
+  flex: 1;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 30px 20px;
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+.espera p {
+  margin: 0;
+}
+
+.espera-flor {
+  width: 56px;
+  height: 56px;
+  fill: var(--roxo-suave);
+  animation: espera-rodar 1.6s ease-in-out infinite;
+  transform-origin: 50% 50%;
+}
+
+.espera.pequena {
+  min-height: 0;
+  padding: 16px;
+  gap: 10px;
+  font-size: 0.82rem;
+}
+
+.espera.pequena .espera-flor {
+  width: 34px;
+  height: 34px;
+}
+
+/* No ecrã de entrada (fundo roxo), a flor é clara. */
+.login-shell .espera {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.login-shell .espera-flor {
+  fill: rgba(167, 243, 208, 0.9);
+}
+
+@keyframes espera-rodar {
+  0% {
+    transform: rotate(0deg) scale(0.92);
+    opacity: 0.55;
+  }
+  50% {
+    transform: rotate(180deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(360deg) scale(0.92);
+    opacity: 0.55;
+  }
+}
+
+/* Quem prefere menos movimento: a flor fica quieta, só a pulsar de leve. */
+@media (prefers-reduced-motion: reduce) {
+  .espera-flor {
+    animation: espera-pulsar 2s ease-in-out infinite;
+  }
+
+  @keyframes espera-pulsar {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+}
+
+/* ---------------- Mapa da semana (semana + todas as funcionárias) ---------------- */
+
+.mapa-semana {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 10px 14px 14px;
+  background: #fff;
+  border: 1px solid var(--linha);
+  border-radius: 14px;
+}
+
+.mapa-regua,
+.mapa-dia {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.mapa-marcas {
+  position: relative;
+  height: 16px;
+  /* Alinhada com as faixas, que começam depois do nome da funcionária. */
+  margin-left: 62px;
+}
+
+.mapa-marcas span {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--texto-suave);
+  white-space: nowrap;
+}
+
+.mapa-dia {
+  padding: 6px 0;
+  border-top: 1px solid var(--linha);
+}
+
+.mapa-dia.e-hoje {
+  background: linear-gradient(90deg, rgba(139, 92, 246, 0.07), transparent 60%);
+}
+
+.mapa-rotulo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  border: 0;
+  background: none;
+  padding: 2px 4px;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.mapa-rotulo:hover {
+  background: var(--roxo-claro);
+}
+
+.mapa-rotulo strong {
+  font-size: 0.78rem;
+  color: var(--roxo);
+}
+
+.mapa-rotulo span {
+  font-size: 0.66rem;
+  color: var(--texto-suave);
+}
+
+.mapa-rotulo em {
+  font-style: normal;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--verde);
+}
+
+.mapa-faixas {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* Uma faixa por funcionária: o fundo é o tempo livre; clicar nele marca. */
+/* Nome da funcionária à esquerda, sempre à vista, e a faixa a seguir. */
+.mapa-linha {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 6px;
+  align-items: center;
+}
+
+.mapa-nome {
+  font-size: 0.66rem;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mapa-faixa {
+  position: relative;
+  height: 13px;
+  border-radius: 5px;
+  background: #f6f5fb;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.mapa-faixa > i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+.mapa-fechado {
+  background: repeating-linear-gradient(45deg, #f3f4f6, #f3f4f6 5px, #eceaf4 5px, #eceaf4 10px);
+}
+
+.mapa-folga {
+  background: repeating-linear-gradient(45deg, #fff7ed, #fff7ed 5px, #fed7aa 5px, #fed7aa 10px);
+  opacity: 0.85;
+}
+
+.mapa-folga.ferias {
+  background: repeating-linear-gradient(45deg, #eff6ff, #eff6ff 5px, #bfdbfe 5px, #bfdbfe 10px);
+}
+
+/* Só cor: o nome do cliente aparece ao passar o rato. Com 28 faixas na semana, texto
+   em cada bloco torna o mapa ilegível. */
+.mapa-bloco {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border: 0;
+  border-radius: 4px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.mapa-bloco:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 2px 8px rgba(30, 27, 75, 0.25);
+}
+
+/* Pendente: às riscas, como na grelha do dia. */
+.mapa-bloco.estado-pendente {
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.35),
+    rgba(255, 255, 255, 0.35) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+}
+
+/* Cabeçalho de cada dia na lista da semana: contagem e barra de ocupação. */
+.barra-do-dia {
+  display: block;
+  width: 100%;
+  height: 4px;
+  margin-top: 5px;
+  border-radius: 999px;
+  background: #f1eff7;
+  overflow: hidden;
+}
+
+.barra-do-dia i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--roxo-suave);
+}
+
+.parte-do-dia {
+  margin: 6px 0 0;
+  padding-left: 2px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #a7a1b8;
+}
+
+.parte-do-dia:first-child {
+  margin-top: 0;
+}
+
+/* A funcionária, pela inicial, na cor dela. */
+.inicial-funcionaria {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--roxo-vivo);
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 800;
 }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import * as api from "../lib/api";
+import EcraEspera from "./EcraEspera";
 import { dataCurta, hoje } from "../lib/datas";
 import {
   ROTULO_AUSENCIA,
@@ -227,7 +228,7 @@ export default function FuncionariaModal({
         ) : (
           <>
             {aCarregarAusencias ? (
-              <p className="dica">A carregar...</p>
+              <EcraEspera pequeno />
             ) : futuras.length === 0 ? (
               <p className="dica">
                 Sem folgas marcadas de hoje em diante
