@@ -37,17 +37,6 @@ export default function TopNav({ separador, eGerente, email, onMudarSeparador, o
   return (
     <header className="topnav">
       <div className="marca" data-tauri-drag-region>
-        <svg className="flor" viewBox="-200 -200 400 400" aria-hidden="true">
-          {[-74, -37, 0, 37, 74].map((angulo) => (
-            <path
-              key={angulo}
-              d="M0 0 C -46 -48 -46 -128 0 -172 C 46 -128 46 -48 0 0 Z"
-              transform={`rotate(${angulo}) scale(${
-                Math.abs(angulo) === 74 ? 0.78 : Math.abs(angulo) === 37 ? 0.92 : 1
-              })`}
-            />
-          ))}
-        </svg>
         <span data-tauri-drag-region>Flor de Lotus</span>
       </div>
 

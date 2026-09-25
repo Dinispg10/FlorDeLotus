@@ -11,8 +11,8 @@
   --roxo-vivo: #5b21b6;
   --roxo-suave: #8b5cf6;
   --roxo-claro: #f3f0ff;
-  --verde: #047857;
-  --verde-vivo: #059669;
+  --verde: #065f46;
+  --verde-vivo: #047857;
   --verde-claro: #ecfdf5;
   --texto: #1f2937;
   --texto-suave: #6b7280;
@@ -223,22 +223,7 @@ input::-ms-clear {
   font-weight: 600;
 }
 
-.login-ajuda {
-  margin: 18px 0 0;
-  padding-top: 14px;
-  border-top: 1px solid var(--linha);
-  color: var(--texto-suave);
-  font-size: 0.78rem;
-  text-align: center;
-}
 
-.login-versao {
-  position: relative;
-  z-index: 1;
-  margin: 0;
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 0.72rem;
-}
 
 @media (max-width: 700px) {
   .login-shell {
@@ -298,19 +283,12 @@ input::-ms-clear {
 .marca {
   display: flex;
   align-items: center;
-  gap: 8px;
   font-weight: 700;
   font-size: 1.05rem;
   letter-spacing: 0.01em;
   white-space: nowrap;
 }
 
-.flor {
-  width: 22px;
-  height: 22px;
-  fill: #a7f3d0;
-  flex-shrink: 0;
-}
 
 .topnav-links {
   display: flex;
@@ -386,12 +364,6 @@ input::-ms-clear {
   color: #fecaca;
 }
 
-.versao-app {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.55);
-  white-space: nowrap;
-}
 
 /* ---------------- Botões da janela ---------------- */
 

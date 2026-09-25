@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
-import { getVersion } from "@tauri-apps/api/app";
 import { supabase } from "../lib/supabase";
 import BotoesJanela, { dentroDoTauri } from "./BotoesJanela";
 
@@ -46,7 +45,6 @@ export default function Login() {
   const [capsLock, setCapsLock] = useState(false);
   const [erro, setErro] = useState("");
   const [aEntrar, setAEntrar] = useState(false);
-  const [versao, setVersao] = useState("");
   const campoEmail = useRef<HTMLInputElement>(null);
   const campoPassword = useRef<HTMLInputElement>(null);
   const tauri = dentroDoTauri();
@@ -56,13 +54,6 @@ export default function Login() {
     (email ? campoPassword : campoEmail).current?.focus();
     // Só ao abrir: não mudar o foco enquanto se escreve.
   }, []);
-
-  useEffect(() => {
-    if (!tauri) return;
-    getVersion()
-      .then(setVersao)
-      .catch(() => {});
-  }, [tauri]);
 
   const verCapsLock = (evento: KeyboardEvent<HTMLInputElement>) => {
     setCapsLock(evento.getModifierState("CapsLock"));
@@ -182,10 +173,8 @@ export default function Login() {
           </button>
         </form>
 
-        <p className="login-ajuda">Esqueceste-te da palavra-passe? Pede à gerência para a mudar.</p>
       </div>
 
-      {versao ? <p className="login-versao">Versão {versao}</p> : null}
     </main>
   );
 }

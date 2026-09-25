@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { check, type Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
-import { getVersion } from "@tauri-apps/api/app";
 import { dentroDoTauri } from "./BotoesJanela";
 
 type Estado =
@@ -19,7 +18,6 @@ type Estado =
  */
 export default function BotaoAtualizar() {
   const [estado, setEstado] = useState<Estado>({ tipo: "parado" });
-  const [versao, setVersao] = useState("");
 
   const verificar = useCallback(async (silencioso: boolean) => {
     if (!silencioso) setEstado({ tipo: "a-verificar" });
@@ -41,7 +39,6 @@ export default function BotaoAtualizar() {
 
   useEffect(() => {
     if (!dentroDoTauri()) return;
-    getVersion().then(setVersao).catch(() => {});
     verificar(true);
   }, [verificar]);
 
@@ -83,7 +80,7 @@ export default function BotaoAtualizar() {
         return { rotulo: "Já está atualizada", classe: "ok", acao: undefined };
       case "disponivel":
         return {
-          rotulo: `Instalar v${estado.atualizacao.version}`,
+          rotulo: "Instalar atualização",
           classe: "novo",
           acao: instalar,
           dica: estado.atualizacao.body ?? undefined,
@@ -111,7 +108,6 @@ export default function BotaoAtualizar() {
 
   return (
     <div className="atualizar">
-      {versao ? <span className="versao-app">v{versao}</span> : null}
       <button
         type="button"
         className={`botao-atualizar ${botao.classe}`}
