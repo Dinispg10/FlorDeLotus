@@ -1,5 +1,6 @@
 import { useState } from "react";
 import * as api from "../lib/api";
+import EstadoVazio from "./EstadoVazio";
 import { formatarPreco } from "../lib/datas";
 import type { Servico } from "../lib/types";
 import ServicoModal from "./ServicoModal";
@@ -72,9 +73,15 @@ export default function ServicosView({
         </div>
 
         {visiveis.length === 0 ? (
-          <div className="estado-vazio">
-            Ainda não há serviços. Adiciona-os com a duração e o preço, que depois preenchem as marcações automaticamente.
-          </div>
+          <EstadoVazio
+            titulo="Ainda não há serviços"
+            ajuda="A duração e o preço de cada serviço preenchem sozinhos as marcações."
+            acao={
+              <button type="button" className="primary-button" onClick={() => setModal({ item: null })}>
+                + Novo serviço
+              </button>
+            }
+          />
         ) : (
           <ul className="lista-registos ampla">
             {visiveis.map((servico) => (

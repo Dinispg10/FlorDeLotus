@@ -1,5 +1,6 @@
 import { useState } from "react";
 import * as api from "../lib/api";
+import EstadoVazio from "./EstadoVazio";
 import type { Funcionario } from "../lib/types";
 import ConfirmarModal from "./ConfirmarModal";
 import FuncionariaModal from "./FuncionariaModal";
@@ -68,9 +69,15 @@ export default function FuncionariasView({
         </div>
 
         {funcionarios.length === 0 ? (
-          <div className="estado-vazio">
-            Ainda não há funcionárias. Adiciona a equipa para a agenda ganhar colunas.
-          </div>
+          <EstadoVazio
+            titulo="Ainda não há funcionárias"
+            ajuda="Cada pessoa da equipa ganha uma coluna na agenda, com a sua cor."
+            acao={
+              <button type="button" className="primary-button" onClick={() => setModal({ item: null })}>
+                + Nova funcionária
+              </button>
+            }
+          />
         ) : (
           <ul className="lista-registos ampla">
             {funcionarios.map((funcionaria) => (

@@ -288,9 +288,10 @@ input::-ms-clear {
   align-items: center;
   gap: 28px;
   padding: 0 22px;
-  height: 58px;
+  height: 60px;
   background: linear-gradient(90deg, #2e1065 0%, #4c1d95 60%, #5b21b6 100%);
-  border-bottom: 3px solid var(--verde-vivo);
+  border-bottom: 2px solid var(--verde-vivo);
+  box-shadow: 0 2px 10px rgba(30, 27, 75, 0.18);
   color: #fff;
 }
 
@@ -305,8 +306,10 @@ input::-ms-clear {
 }
 
 .flor {
-  font-size: 1.2rem;
-  color: #a7f3d0;
+  width: 22px;
+  height: 22px;
+  fill: #a7f3d0;
+  flex-shrink: 0;
 }
 
 .topnav-links {
@@ -446,13 +449,63 @@ input::-ms-clear {
   color: #fff;
 }
 
+.topnav-links button {
+  position: relative;
+}
+
+/* O separador aberto salta à vista: fundo branco e letra roxa. */
 .topnav-links button.ativo {
+  background: #fff;
+  color: var(--roxo);
+  box-shadow: 0 2px 8px rgba(17, 12, 46, 0.25);
+}
+
+.topnav-links button.ativo:hover {
+  background: #fff;
+  color: var(--roxo);
+}
+
+
+/* Quem está com a sessão aberta: importa num computador partilhado ao balcão. */
+.quem-entrou {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: 4px;
+  padding-left: 14px;
+  border-left: 1px solid rgba(255, 255, 255, 0.22);
+  max-width: 190px;
+}
+
+.inicial-conta {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
   background: rgba(255, 255, 255, 0.18);
-  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.nome-conta {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 1100px) {
+  .nome-conta {
+    display: none;
+  }
 }
 
 .botao-sair {
-  margin-left: 8px;
+  margin-left: 4px;
   border: 1px solid rgba(255, 255, 255, 0.35);
   background: transparent;
   color: #fff;
@@ -501,6 +554,20 @@ input::-ms-clear {
 .danger-button {
   background: #fee2e2;
   color: #b91c1c;
+}
+
+/* Nas listas, apagar é a ação menos usada: não compete com "Abrir ficha". Continua
+   a pedir confirmação, por isso não precisa de gritar. */
+.lista-registos .danger-button {
+  background: transparent;
+  border: 1px solid var(--linha);
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.lista-registos .danger-button:hover {
+  background: #fee2e2;
+  border-color: #fecaca;
 }
 
 .primary-button:disabled,
@@ -809,6 +876,25 @@ input::-ms-clear {
 
 .linha-filtros-agenda > .acoes-agenda {
   justify-self: end;
+  gap: 10px;
+}
+
+/* As ferramentas da vista (procurar, zoom, dia/semana) ficam juntas e mais leves; o
+   botão de marcar fica destacado, separado por uma linha. */
+.acoes-agenda > .primary-button {
+  margin-left: 4px;
+  padding-left: 14px;
+  position: relative;
+}
+
+.acoes-agenda > .primary-button::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 4px;
+  bottom: 4px;
+  width: 1px;
+  background: var(--linha);
 }
 
 .navegadores-centro {
@@ -3820,4 +3906,32 @@ button.cabecalho-coluna:hover {
   color: #fff;
   font-size: 0.6rem;
   font-weight: 800;
+}
+
+/* Listas vazias: a flor da casa e o que fazer a seguir. */
+.estado-vazio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.estado-vazio strong {
+  font-size: 0.95rem;
+  color: var(--texto);
+}
+
+.estado-vazio span {
+  font-size: 0.85rem;
+  max-width: 420px;
+}
+
+.estado-vazio .primary-button {
+  margin-top: 6px;
+}
+
+.flor-vazia {
+  width: 46px;
+  height: 46px;
+  fill: #e6e2f5;
 }

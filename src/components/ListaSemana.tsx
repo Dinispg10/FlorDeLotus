@@ -137,7 +137,9 @@ export default function ListaSemana({
                 );
               })}
 
-              {doDia.length === 0 && horario.aberto ? <p className="dia-sem-nada">—</p> : null}
+              {doDia.length === 0 && horario.aberto ? (
+                <p className="dia-sem-nada">Dia livre</p>
+              ) : null}
 
               {manha.length > 0 ? <p className="parte-do-dia">Manhã</p> : null}
               {manha.map(linha)}

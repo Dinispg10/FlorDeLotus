@@ -13,6 +13,7 @@ import {
 import type { PreDefinicao } from "./AgendamentoModal";
 import PesquisaMarcacoes from "./PesquisaMarcacoes";
 import SeletorTelemovel from "./SeletorTelemovel";
+import EstadoVazio from "./EstadoVazio";
 
 /** Distância mínima, em pixels, para um deslizar do dedo mudar de dia. */
 const DESLIZE_MINIMO = 70;
@@ -151,9 +152,10 @@ export default function AgendaTelemovel({
         })}
 
         {doDia.length === 0 ? (
-          <div className="estado-vazio">
-            {horario.aberto ? "Não há marcações neste dia." : "O salão está fechado neste dia."}
-          </div>
+          <EstadoVazio
+            titulo={horario.aberto ? "Dia livre" : "Salão fechado"}
+            ajuda={horario.aberto ? "Carrega no + para marcar." : "Nenhuma marcação é possível neste dia."}
+          />
         ) : (
           doDia.map((marcacao) => {
             const servico = servicos.find((item) => item.id === marcacao.servicoId);

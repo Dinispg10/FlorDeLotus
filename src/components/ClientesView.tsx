@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import * as api from "../lib/api";
+import EstadoVazio from "./EstadoVazio";
 import { normalizarTelefone, normalizarTexto } from "../lib/agenda";
 import type { Agendamento, Cliente, Funcionario, Servico } from "../lib/types";
 import ClienteModal from "./ClienteModal";
@@ -110,11 +111,21 @@ export default function ClientesView({
         />
 
         {visiveis.length === 0 ? (
-          <div className="estado-vazio">
-            {clientes.length === 0
-              ? "Ainda não há clientes. As fichas também são criadas automaticamente ao fazer uma marcação."
-              : "Nenhum cliente encontrado."}
-          </div>
+          <EstadoVazio
+            titulo={clientes.length === 0 ? "Ainda não há clientes" : "Nenhum cliente encontrado"}
+            ajuda={
+              clientes.length === 0
+                ? "As fichas também se criam sozinhas quando se marca alguém novo."
+                : "Tenta outro nome ou outro número de telefone."
+            }
+            acao={
+              clientes.length === 0 ? (
+                <button type="button" className="primary-button" onClick={() => setModal({ cliente: null })}>
+                  + Novo cliente
+                </button>
+              ) : null
+            }
+          />
         ) : (
           <ul className="lista-registos ampla">
             {visiveis.map((cliente) => (

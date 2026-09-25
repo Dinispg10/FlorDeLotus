@@ -32,6 +32,7 @@ import {
 import type { PreDefinicao } from "./AgendamentoModal";
 import PesquisaMarcacoes from "./PesquisaMarcacoes";
 import ListaSemana from "./ListaSemana";
+import EstadoVazio from "./EstadoVazio";
 
 /**
  * Espaço por hora, em pixels por minuto. O salão escolhe o nível com os botões
@@ -465,9 +466,10 @@ export default function AgendaView({
       ) : null}
 
       {colunas.length === 0 ? (
-        <div className="estado-vazio">
-          Ainda não há funcionárias ativas. Podes adicioná-las em Definições → Funcionárias.
-        </div>
+        <EstadoVazio
+          titulo="Ainda não há funcionárias"
+          ajuda="Sem equipa não há colunas na agenda. Cria-as em Definições → Funcionárias."
+        />
       ) : emLista ? (
         <ListaSemana
           dias={diasDaSemana}

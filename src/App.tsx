@@ -228,6 +228,7 @@ function App() {
       <TopNav
         separador={separador}
         eGerente={eGerente}
+        email={session.user.email ?? ""}
         onMudarSeparador={setSeparador}
         onSair={sair}
       />
