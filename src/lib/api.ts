@@ -56,13 +56,28 @@ export type Papel = "gerente" | "funcionaria";
  * perfis ainda não existir (migração 012 por correr), a base de dados ainda deixa
  * tudo a todos, e a app mostra tudo como antes.
  */
-export const carregarPapel = async (): Promise<Papel> => {
+export const carregarPapel = async (
+  utilizador: { id: string; email?: string } | null,
+): Promise<Papel> => {
   const { data, error } = await client().from("perfis").select("papel").maybeSingle();
   if (error) {
     const semTabela = error.code === "PGRST205" || error.code === "42P01";
     if (!semTabela) console.error("Não foi possível ler o papel", error);
     return semTabela ? "gerente" : "funcionaria";
   }
+
+  // Conta sem perfil (o gatilho do Supabase pode não ter corrido): cria-se aqui, como
+  // funcionária. Quem manda nos papéis é quem tem acesso ao Supabase.
+  if (!data && utilizador) {
+    const { error: erroACriar } = await client()
+      .from("perfis")
+      .insert({ user_id: utilizador.id, email: utilizador.email ?? null, papel: "funcionaria" });
+    if (erroACriar && erroACriar.code !== "23505") {
+      console.error("Não foi possível criar o perfil", erroACriar);
+    }
+    return "funcionaria";
+  }
+
   return data?.papel === "gerente" ? "gerente" : "funcionaria";
 };
 

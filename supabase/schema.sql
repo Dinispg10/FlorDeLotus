@@ -299,6 +299,13 @@ DROP POLICY IF EXISTS "cada_um_le_o_seu_perfil" ON public.perfis;
 CREATE POLICY "cada_um_le_o_seu_perfil"
 ON public.perfis FOR SELECT TO authenticated USING (user_id = (SELECT auth.uid()));
 
+-- Cada pessoa cria o seu próprio perfil na primeira entrada, sempre como funcionária.
+-- Quem manda nos papéis é quem tem acesso ao Supabase.
+DROP POLICY IF EXISTS "cada_um_cria_o_seu_perfil" ON public.perfis;
+CREATE POLICY "cada_um_cria_o_seu_perfil"
+ON public.perfis FOR INSERT TO authenticated
+WITH CHECK (user_id = (SELECT auth.uid()) AND papel = 'funcionaria');
+
 -- Contas criadas daqui em diante ganham logo um perfil de funcionária.
 CREATE OR REPLACE FUNCTION public.criar_perfil_da_conta()
 RETURNS TRIGGER
@@ -313,10 +320,20 @@ BEGIN
 END;
 $$;
 
-DROP TRIGGER IF EXISTS ao_criar_conta ON auth.users;
-CREATE TRIGGER ao_criar_conta
-AFTER INSERT ON auth.users
-FOR EACH ROW EXECUTE FUNCTION public.criar_perfil_da_conta();
+-- O gatilho vive numa tabela do Supabase (auth.users) e nem sempre há permissão para
+-- lá mexer. Se falhar, o resto do ficheiro continua: a app cria o perfil na primeira
+-- entrada (ver a política abaixo).
+DO $gatilho$
+BEGIN
+  DROP TRIGGER IF EXISTS ao_criar_conta ON auth.users;
+  CREATE TRIGGER ao_criar_conta
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.criar_perfil_da_conta();
+EXCEPTION
+  WHEN insufficient_privilege OR undefined_table THEN
+    RAISE NOTICE 'Sem permissão para o gatilho em auth.users: os perfis são criados pela app.';
+END;
+$gatilho$;
 
 -- Contas que já existem: também funcionária, até alguém dizer o contrário.
 INSERT INTO public.perfis (user_id, email)

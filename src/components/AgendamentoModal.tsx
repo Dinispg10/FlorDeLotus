@@ -667,7 +667,6 @@ export default function AgendamentoModal({
               rows={2}
               value={observacoes}
               onChange={(evento) => setObservacoes(evento.target.value)}
-              placeholder="Ex: alergia a amoníaco, prefere franja"
             />
           </label>
 

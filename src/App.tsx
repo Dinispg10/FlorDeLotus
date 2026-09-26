@@ -72,7 +72,7 @@ function App() {
       return;
     }
     let ativo = true;
-    api.carregarPapel().then((lido) => {
+    api.carregarPapel(session?.user ? { id: session.user.id, email: session.user.email } : null).then((lido) => {
       if (ativo) setPapel(lido);
     });
     return () => {
