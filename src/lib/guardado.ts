@@ -59,10 +59,10 @@ export const pareceFaltaDeRede = (erro: unknown) => {
 
 /**
  * Fim do mundo à espera. Uma semana de agenda leva menos de um segundo numa rede
- * normal; 5 segundos dão folga para uma rede fraca sem deixar ninguém a olhar para o
+ * normal; 8 segundos dão folga para uma rede fraca sem deixar ninguém a olhar para o
  * ecrã sem saber o que se passa.
  */
-export const LIMITE_MS = 5000;
+export const LIMITE_MS = 8000;
 
 /**
  * Uma rede má (Wi-Fi ligado mas sem internet) não dá erro: fica à espera para sempre.
@@ -97,4 +97,22 @@ export const SEM_REDE = "Sem internet. Isto aparece assim que a ligação voltar
 export const mensagemDeFalha = (causa: unknown, seNaoForRede: string) => {
   if (pareceFaltaDeRede(causa)) return SEM_REDE;
   return causa instanceof Error ? causa.message : seNaoForRede;
+};
+
+/**
+ * Tenta duas vezes antes de dar a rede como perdida.
+ *
+ * Um computador que adormece ou um telemóvel que bloqueia o ecrã param os relógios
+ * internos; ao voltar, a espera esgota-se toda de uma vez e parece que não há rede
+ * quando há. A segunda tentativa desfaz esse engano, e também os soluços de um
+ * segundo do Wi-Fi.
+ */
+export const comSegundaTentativa = async <T>(fazer: () => Promise<T>): Promise<T> => {
+  try {
+    return await comTempoLimite(fazer());
+  } catch (causa) {
+    if (!pareceFaltaDeRede(causa)) throw causa;
+    await new Promise((seguir) => setTimeout(seguir, 800));
+    return comTempoLimite(fazer());
+  }
 };

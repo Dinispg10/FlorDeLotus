@@ -3,7 +3,7 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import * as api from "../lib/api";
 import EcraEspera from "./EcraEspera";
 import EstadoVazio from "./EstadoVazio";
-import { mensagemDeFalha } from "../lib/guardado";
+import { comSegundaTentativa, mensagemDeFalha } from "../lib/guardado";
 import { dataPorExtenso, hoje, somarDias } from "../lib/datas";
 import {
   agruparEmVisitas,
@@ -55,7 +55,7 @@ export default function LembretesView({
   const carregar = useCallback(async () => {
     setACarregar(true);
     try {
-      setMarcacoes(await api.listarAgendamentos(dia, dia));
+      setMarcacoes(await comSegundaTentativa(() => api.listarAgendamentos(dia, dia)));
       setErroDoDia("");
     } catch (causa) {
       setErroDoDia(mensagemDeFalha(causa, "Não foi possível carregar o dia."));

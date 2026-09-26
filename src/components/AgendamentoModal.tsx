@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import * as api from "../lib/api";
-import { mensagemDeFalha } from "../lib/guardado";
+import { comSegundaTentativa, mensagemDeFalha } from "../lib/guardado";
 import {
   ausenciaQueBloqueia,
   encadearServicos,
@@ -173,8 +173,7 @@ export default function AgendamentoModal({
   useEffect(() => {
     if (!agendamento || naSemana) return;
     let ativo = true;
-    api
-      .listarDaVisita(agendamento.visitaId)
+    comSegundaTentativa(() => api.listarDaVisita(agendamento.visitaId))
       .then((daVisita) => {
         if (!ativo) return;
         const edicao = prepararEdicao(agendamento, daVisita);

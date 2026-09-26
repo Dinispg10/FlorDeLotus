@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import * as api from "../lib/api";
 import EcraEspera from "./EcraEspera";
-import { mensagemDeFalha } from "../lib/guardado";
+import { comSegundaTentativa, mensagemDeFalha } from "../lib/guardado";
 import { normalizarTelefone } from "../lib/agenda";
 import { dataCurta, formatarPreco } from "../lib/datas";
 import {
@@ -45,7 +45,7 @@ export default function ClienteModal({
   const carregarHistorico = useCallback(async () => {
     if (!cliente) return;
     try {
-      setHistorico(await api.listarAgendamentosDoCliente(cliente.id));
+      setHistorico(await comSegundaTentativa(() => api.listarAgendamentosDoCliente(cliente.id)));
     } catch (causa) {
       setErroHistorico(mensagemDeFalha(causa, "Não foi possível carregar o histórico."));
     } finally {

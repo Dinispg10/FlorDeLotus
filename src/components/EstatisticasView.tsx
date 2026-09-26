@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import * as api from "../lib/api";
 import EcraEspera from "./EcraEspera";
-import { mensagemDeFalha } from "../lib/guardado";
+import { comSegundaTentativa, mensagemDeFalha } from "../lib/guardado";
 import { formatarPreco, hoje } from "../lib/datas";
 import {
   criarPeriodo,
@@ -209,10 +209,12 @@ export default function EstatisticasView({ configuracoes, funcionarios, servicos
   const carregar = useCallback(async () => {
     setACarregar(true);
     try {
-      const [lista, folgas] = await Promise.all([
-        api.listarAgendamentos(periodo.anterior.inicio, periodo.fim),
-        api.listarAusencias(periodo.inicio, periodo.fim),
-      ]);
+      const [lista, folgas] = await comSegundaTentativa(() =>
+        Promise.all([
+          api.listarAgendamentos(periodo.anterior.inicio, periodo.fim),
+          api.listarAusencias(periodo.inicio, periodo.fim),
+        ]),
+      );
       setMarcacoes(lista);
       setAusencias(folgas);
       setCarregouUmaVez(true);

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as api from "../lib/api";
-import { mensagemDeFalha } from "../lib/guardado";
+import { comSegundaTentativa, mensagemDeFalha } from "../lib/guardado";
 import { normalizarTelefone, normalizarTexto } from "../lib/agenda";
 import { abreviaturaDiaSemana, dataCompacta, hoje } from "../lib/datas";
 import type { Agendamento, Cliente, Funcionario, Servico } from "../lib/types";
@@ -66,7 +66,7 @@ export default function PesquisaMarcacoes({ clientes, funcionarios, servicos, on
     setACarregar(true);
     const temporizador = window.setTimeout(async () => {
       try {
-        const lidas = await api.proximasMarcacoesDe(ids.split(","));
+        const lidas = await comSegundaTentativa(() => api.proximasMarcacoesDe(ids.split(",")));
         if (ativo) {
           setMarcacoes(lidas);
           setErro("");

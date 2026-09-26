@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import * as api from "../lib/api";
 import { supabase } from "../lib/supabase";
 import { inicioDaSemana, somarDias } from "../lib/datas";
-import { comTempoLimite, guardar, ler, pareceFaltaDeRede } from "../lib/guardado";
+import { comSegundaTentativa, guardar, ler, pareceFaltaDeRede } from "../lib/guardado";
 import {
   CONFIGURACOES_PADRAO,
   type Agendamento,
@@ -54,13 +54,14 @@ export function useSalao(ativo: boolean, diaSelecionado: string) {
   const carregarBase = useCallback(async () => {
     if (!ativo) return;
     try {
-      const [listaFuncionarios, listaServicos, listaClientes, config] = await comTempoLimite(
-        Promise.all([
-          api.listarFuncionarios(),
-          api.listarServicos(),
-          api.listarClientes(),
-          api.carregarConfiguracoes(),
-        ]),
+      const [listaFuncionarios, listaServicos, listaClientes, config] = await comSegundaTentativa(
+        () =>
+          Promise.all([
+            api.listarFuncionarios(),
+            api.listarServicos(),
+            api.listarClientes(),
+            api.carregarConfiguracoes(),
+          ]),
       );
       setFuncionarios(listaFuncionarios);
       setServicos(listaServicos);
@@ -94,7 +95,7 @@ export function useSalao(ativo: boolean, diaSelecionado: string) {
   const carregarAgenda = useCallback(async () => {
     if (!ativo) return;
     try {
-      const [marcacoes, folgas] = await comTempoLimite(
+      const [marcacoes, folgas] = await comSegundaTentativa(() =>
         Promise.all([api.listarAgendamentos(segunda, domingo), api.listarAusencias(segunda, domingo)]),
       );
       setAgendamentos(marcacoes);
