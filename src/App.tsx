@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import "./App.css";
-import { isSupabaseConfigured, supabase } from "./lib/supabase";
+import { isSupabaseConfigured, supabase, VEIO_DE_RECUPERACAO } from "./lib/supabase";
 import * as api from "./lib/api";
 import { dataPorExtenso, hoje, horaLocal } from "./lib/datas";
 import { comTempoLimite, esquecerTudo } from "./lib/guardado";
@@ -9,6 +9,7 @@ import type { Agendamento, Cliente } from "./lib/types";
 import { useSalao } from "./hooks/useSalao";
 import { useEcraPequeno } from "./hooks/useEcraPequeno";
 import Login from "./components/Login";
+import NovaPassword from "./components/NovaPassword";
 import EcraEspera from "./components/EcraEspera";
 import TopNav, { NavegacaoFundo, type Separador } from "./components/TopNav";
 import AgendaView, { type Vista } from "./components/AgendaView";
@@ -28,6 +29,9 @@ type EstadoModal = {
 function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [sessaoVerificada, setSessaoVerificada] = useState(false);
+  // A marca do link foi lida ao arrancar (ver lib/supabase.ts); o aviso do Supabase
+  // chega a seguir, mas pode passar ao lado se ninguém estiver à escuta a tempo.
+  const [aTrocarPassword, setATrocarPassword] = useState(VEIO_DE_RECUPERACAO);
   const [separador, setSeparador] = useState<Separador>("agenda");
   const [funcionariaSelecionada, setFuncionariaSelecionada] = useState<string | null>(null);
   const [vista, setVista] = useState<Vista>("dia");
@@ -57,8 +61,9 @@ function App() {
       .catch(() => {})
       .finally(() => setSessaoVerificada(true));
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_evento, proximaSessao) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((evento, proximaSessao) => {
       setSession(proximaSessao);
+      if (evento === "PASSWORD_RECOVERY") setATrocarPassword(true);
     });
 
     return () => listener.subscription.unsubscribe();
@@ -142,6 +147,16 @@ function App() {
     [modal?.agendamento, salao],
   );
 
+  /** As próximas vezes de uma visita ficaram marcadas (podem ser noutras semanas). */
+  const aoRepetir = useCallback(
+    (resumo: string) => {
+      setModal(null);
+      setAviso(resumo);
+      salao.recarregarAgenda();
+    },
+    [salao],
+  );
+
   const aoApagar = useCallback(
     (ids: string[]) => {
       ids.forEach(salao.removerDaLista);
@@ -198,6 +213,25 @@ function App() {
       <main className="login-shell">
         <EcraEspera texto="A ligar ao salão..." />
       </main>
+    );
+  }
+
+  // Quem veio do link do email escolhe a palavra-passe nova antes de ver a agenda.
+  if (aTrocarPassword && session) {
+    return (
+      <NovaPassword
+        email={session.user.email ?? ""}
+        onPronto={(mensagem) => {
+          setATrocarPassword(false);
+          setAviso(mensagem);
+          // Tirar o link do endereço, para um F5 não voltar a abrir este ecrã.
+          try {
+            window.history.replaceState(null, "", window.location.pathname);
+          } catch {
+            // navegador antigo: fica o endereço como está, sem mal nenhum
+          }
+        }}
+      />
     );
   }
 
@@ -361,6 +395,7 @@ function App() {
           onFechar={() => setModal(null)}
           onGuardado={aoGuardar}
           onApagado={aoApagar}
+          onRepetido={aoRepetir}
         />
       ) : null}
 

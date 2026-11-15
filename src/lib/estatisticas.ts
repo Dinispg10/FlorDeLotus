@@ -87,6 +87,13 @@ export const moverPeriodo = (tipo: TipoPeriodo, referencia: string, passo: numbe
 export const dentroDe = (marcacoes: Agendamento[], inicio: string, fim: string) =>
   marcacoes.filter((item) => item.data >= inicio && item.data <= fim);
 
+/**
+ * Quem faltou não pagou. As faltas ficam na agenda e no histórico do cliente, mas
+ * fora de todas as contas: faturação, número de marcações, ocupação e serviços.
+ */
+export const semFaltas = (marcacoes: Agendamento[]) =>
+  marcacoes.filter((item) => item.status !== "faltou");
+
 /* ---------------------------------------------------------------- */
 /* Resumo                                                            */
 /* ---------------------------------------------------------------- */

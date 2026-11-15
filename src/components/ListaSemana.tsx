@@ -52,7 +52,7 @@ export default function ListaSemana({
         key={marcacao.id}
         type="button"
         className={`linha-marcacao estado-${marcacao.status}`}
-        style={dona ? { borderLeftColor: dona.cor } : undefined}
+        style={dona && marcacao.status !== "faltou" ? { borderLeftColor: dona.cor } : undefined}
         onClick={() => onAbrirExistente(marcacao)}
         title={[
           `${marcacao.inicio}-${marcacao.fim} · ${marcacao.cliente}`,
@@ -68,7 +68,7 @@ export default function ListaSemana({
         <span className="linha-cliente">{marcacao.cliente}</span>
         <span
           className="inicial-funcionaria"
-          style={dona ? { background: dona.cor } : undefined}
+          style={dona && marcacao.status !== "faltou" ? { background: dona.cor } : undefined}
           aria-hidden="true"
         >
           {dona?.nome.charAt(0) ?? "?"}

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
-import { supabase } from "../lib/supabase";
+import { PROBLEMA_DO_LINK, supabase } from "../lib/supabase";
 import BotoesJanela, { dentroDoTauri } from "./BotoesJanela";
 
 /** As mensagens do Supabase vêm em inglês; mostramos algo útil a quem está ao balcão. */
@@ -16,6 +16,11 @@ const traduzirErro = (mensagem: string) => {
   }
   if (texto.includes("rate limit") || texto.includes("too many")) {
     return "Demasiadas tentativas. Espera um minuto e tenta outra vez.";
+  }
+  // Enquanto o envio de emails não estiver configurado, o Supabase só aceita enviar
+  // para o dono do projeto. Quem está ao balcão não tem de saber disso.
+  if (texto.includes("not authorized")) {
+    return "Não é possível enviar a mensagem para este email. Fala com quem trata da app.";
   }
   return mensagem;
 };
@@ -43,8 +48,10 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [capsLock, setCapsLock] = useState(false);
-  const [erro, setErro] = useState("");
+  const [erro, setErro] = useState(PROBLEMA_DO_LINK);
   const [aEntrar, setAEntrar] = useState(false);
+  const [aPedirLink, setAPedirLink] = useState(false);
+  const [linkEnviado, setLinkEnviado] = useState("");
   const campoEmail = useRef<HTMLInputElement>(null);
   const campoPassword = useRef<HTMLInputElement>(null);
   const tauri = dentroDoTauri();
@@ -88,6 +95,35 @@ export default function Login() {
       // sem problema: da próxima vez escreve-se o email outra vez
     }
     setAEntrar(false);
+  };
+
+  /**
+   * Enviar o email com o link para escolher outra palavra-passe. O link abre a
+   * página da agenda (o endereço configurado no Supabase), onde se define a nova.
+   */
+  const pedirLink = async () => {
+    const emailLimpo = email.trim();
+    if (!emailLimpo) {
+      setErro("Escreve primeiro o teu email, para saber para onde enviar.");
+      campoEmail.current?.focus();
+      return;
+    }
+    if (!supabase) {
+      setErro("Supabase não configurado.");
+      return;
+    }
+
+    setAPedirLink(true);
+    setErro("");
+    const { error } = await supabase.auth.resetPasswordForEmail(emailLimpo);
+    setAPedirLink(false);
+
+    if (error) {
+      setErro(traduzirErro(error.message));
+      return;
+    }
+    // Não se diz se a conta existe ou não: quem não é da casa não fica a saber.
+    setLinkEnviado(emailLimpo);
   };
 
   return (
@@ -171,6 +207,24 @@ export default function Login() {
           <button type="submit" className="primary-button wide-button" disabled={aEntrar}>
             {aEntrar ? "A entrar..." : "Entrar"}
           </button>
+
+          {linkEnviado ? (
+            <p className="login-ajuda feito" role="status">
+              Se houver uma conta com o email <strong>{linkEnviado}</strong>, chega lá uma
+              mensagem com um link para escolher outra palavra-passe. O link serve uma vez e
+              dura cerca de uma hora. Vê também a pasta do lixo.
+              {tauri ? " O link abre a agenda no navegador; depois entra aqui com a nova." : ""}
+            </p>
+          ) : (
+            <button
+              type="button"
+              className="ligacao-discreta"
+              onClick={pedirLink}
+              disabled={aPedirLink || aEntrar}
+            >
+              {aPedirLink ? "A enviar..." : "Esqueci-me da palavra-passe"}
+            </button>
+          )}
         </form>
 
       </div>

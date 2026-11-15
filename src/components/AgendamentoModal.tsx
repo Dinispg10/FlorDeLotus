@@ -26,6 +26,8 @@ import {
 } from "../lib/types";
 import ConfirmarModal from "./ConfirmarModal";
 import CampoNumero from "./CampoNumero";
+import RepetirModal from "./RepetirModal";
+import { novoId } from "../lib/ids";
 
 export type PreDefinicao = {
   data: string;
@@ -55,15 +57,9 @@ type Props = {
   onFechar: () => void;
   onGuardado: (agendamentos: Agendamento[], clienteNovo: Cliente | null, removidos: string[]) => void;
   onApagado: (ids: string[]) => void;
+  /** Marcou-se as próximas vezes desta visita: a agenda tem de ir buscar o que há de novo. */
+  onRepetido: (resumo: string) => void;
 };
-
-/** crypto.randomUUID só existe em https; no telemóvel em teste (http) faz-se à mão. */
-const novoId = () =>
-  typeof crypto !== "undefined" && "randomUUID" in crypto
-    ? crypto.randomUUID()
-    : "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) =>
-        (Number(c) ^ (Math.floor(Math.random() * 16) >> (Number(c) / 4))).toString(16),
-      );
 
 /**
  * Ao abrir uma marcação, a visita inteira: todos os serviços do cliente marcados
@@ -101,6 +97,7 @@ export default function AgendamentoModal({
   onFechar,
   onGuardado,
   onApagado,
+  onRepetido,
 }: Props) {
   const emEdicao = agendamento !== null;
   const funcionariosAtivos = funcionarios;
@@ -167,6 +164,7 @@ export default function AgendamentoModal({
   const [erro, setErro] = useState("");
   const [aGuardar, setAGuardar] = useState(false);
   const [confirmarCancelar, setConfirmarCancelar] = useState(false);
+  const [aRepetir, setARepetir] = useState(false);
   const primeiroCampo = useRef<HTMLInputElement>(null);
 
   // Vindo de outro dia (pesquisa, ficha do cliente): ler a visita da base de dados.
@@ -645,20 +643,28 @@ export default function AgendamentoModal({
             )}
           </div>
 
-          {/* Por omissão, confirmada; pendente serve para quem ainda vai confirmar. */}
+          {/* Por omissão, confirmada; pendente serve para quem ainda vai confirmar.
+              "Faltou" só faz sentido numa marcação que já existe. */}
           <label>
             Estado
             <select
               value={status}
               onChange={(evento) => setStatus(evento.target.value as StatusAgendamento)}
             >
-              {STATUS_AGENDAMENTO.map((valor) => (
-                <option key={valor} value={valor}>
-                  {ROTULO_STATUS[valor]}
-                </option>
-              ))}
+              {STATUS_AGENDAMENTO.filter((valor) => agendamento || valor !== "faltou").map(
+                (valor) => (
+                  <option key={valor} value={valor}>
+                    {ROTULO_STATUS[valor]}
+                  </option>
+                ),
+              )}
             </select>
           </label>
+          {status === "faltou" ? (
+            <p className="dica">
+              Fica na agenda e no histórico do cliente, mas não conta para a faturação.
+            </p>
+          ) : null}
 
           <label>
             Observações
@@ -692,14 +698,29 @@ export default function AgendamentoModal({
 
           <div className="modal-actions">
             {emEdicao ? (
-              <button
-                type="button"
-                className="danger-button"
-                onClick={() => setConfirmarCancelar(true)}
-                disabled={aGuardar}
-              >
-                Cancelar marcação
-              </button>
+              <div className="modal-actions-esquerda">
+                <button
+                  type="button"
+                  className="danger-button"
+                  onClick={() => setConfirmarCancelar(true)}
+                  disabled={aGuardar}
+                >
+                  Cancelar marcação
+                </button>
+                <button
+                  type="button"
+                  className="ghost-button"
+                  onClick={() => setARepetir(true)}
+                  disabled={aGuardar || aCarregarVisita || !clienteId}
+                  title={
+                    clienteId
+                      ? "Marcar as próximas vezes desta visita"
+                      : "Guarda primeiro a marcação com um cliente da lista"
+                  }
+                >
+                  Repetir...
+                </button>
+              </div>
             ) : (
               <span />
             )}
@@ -726,6 +747,34 @@ export default function AgendamentoModal({
             </div>
           </div>
         </form>
+
+        {aRepetir && clienteId ? (
+          <RepetirModal
+            visita={{
+              clienteId,
+              clienteNome: nomeCliente,
+              telefone: telefone.trim(),
+              observacoes: observacoes.trim(),
+              data,
+              inicio,
+              servicos: agenda.map((item) => ({
+                servicoId: item.servicoId,
+                funcionarioId: item.funcionarioId,
+                duracaoMinutos: item.duracaoMinutos,
+                inicio: item.inicio,
+                fim: item.fim,
+              })),
+            }}
+            funcionarios={funcionarios}
+            servicos={servicos}
+            configuracoes={configuracoes}
+            onVoltar={() => setARepetir(false)}
+            onFeito={(resumo) => {
+              setARepetir(false);
+              onRepetido(resumo);
+            }}
+          />
+        ) : null}
 
         {confirmarCancelar && agendamento ? (
           <ConfirmarModal

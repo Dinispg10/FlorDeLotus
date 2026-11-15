@@ -10,6 +10,7 @@ import {
   porFuncionaria,
   porServico,
   resumir,
+  semFaltas,
   serieDoPeriodo,
   variacao,
   type Ponto,
@@ -76,7 +77,15 @@ function IndicadorVariacao({
   );
 }
 
-function GraficoEvolucao({ pontos, titulo }: { pontos: Ponto[]; titulo: string }) {
+function GraficoEvolucao({
+  pontos,
+  titulo,
+  telemovel,
+}: {
+  pontos: Ponto[];
+  titulo: string;
+  telemovel: boolean;
+}) {
   const [ativo, setAtivo] = useState<string | null>(null);
   const [verTabela, setVerTabela] = useState(false);
 
@@ -87,6 +96,19 @@ function GraficoEvolucao({ pontos, titulo }: { pontos: Ponto[]; titulo: string }
   const maisAlto = pontos.find((p) => p.faturacao === maximo && maximo > 0)?.chave;
   const hojeChave = hoje();
 
+  // Num mês há 31 dias e no telemóvel não cabem 31 números lado a lado: mostra-se
+  // um em cada tantos, contados a partir de hoje para hoje aparecer sempre.
+  const indiceHoje = pontos.findIndex((ponto) => ponto.chave === hojeChave);
+  const passo = telemovel && pontos.length > 10 ? Math.ceil(pontos.length / 6) : 1;
+  const comRotulo = (indice: number) =>
+    passo === 1 ||
+    (indiceHoje >= 0 ? (indice - indiceHoje) % passo === 0 : indice % passo === 0);
+
+  // No telemóvel a bolha a flutuar saía do ecrã nos últimos dias do mês; o valor
+  // aparece numa linha fixa no topo do cartão, que se escolhe com um toque.
+  const escolhido = pontos.find((ponto) => ponto.chave === ativo);
+  const emDestaque = escolhido ?? pontos.find((ponto) => ponto.chave === maisAlto);
+
   return (
     <div className="cartao grafico-cartao">
       <div className="cartao-topo">
@@ -95,6 +117,13 @@ function GraficoEvolucao({ pontos, titulo }: { pontos: Ponto[]; titulo: string }
           {verTabela ? "Ver gráfico" : "Ver valores"}
         </button>
       </div>
+
+      {telemovel && !verTabela && emDestaque ? (
+        <p className="subtitulo grafico-escolhido">
+          <strong>{formatarPreco(emDestaque.faturacao)}</strong> ·{" "}
+          {escolhido ? emDestaque.rotuloCompleto : `o mais alto · ${emDestaque.rotuloCompleto}`}
+        </p>
+      ) : null}
 
       {verTabela ? (
         <table className="tabela-estatisticas">
@@ -136,6 +165,18 @@ function GraficoEvolucao({ pontos, titulo }: { pontos: Ponto[]; titulo: string }
               {pontos.map((ponto) => {
                 const altura = (ponto.faturacao / topo) * 100;
                 const destaque = ponto.chave === ativo;
+                // No telemóvel escolhe-se com um toque; no computador basta o rato.
+                const interacao = telemovel
+                  ? {
+                      onClick: () =>
+                        setAtivo((atual) => (atual === ponto.chave ? null : ponto.chave)),
+                    }
+                  : {
+                      onPointerEnter: () => setAtivo(ponto.chave),
+                      onPointerLeave: () => setAtivo(null),
+                      onFocus: () => setAtivo(ponto.chave),
+                      onBlur: () => setAtivo(null),
+                    };
 
                 return (
                   <div
@@ -143,12 +184,9 @@ function GraficoEvolucao({ pontos, titulo }: { pontos: Ponto[]; titulo: string }
                     className={`grafico-faixa ${destaque ? "ativa" : ""}`}
                     tabIndex={0}
                     aria-label={`${ponto.rotuloCompleto}: ${formatarPreco(ponto.faturacao)}, ${ponto.marcacoes} marcações`}
-                    onPointerEnter={() => setAtivo(ponto.chave)}
-                    onPointerLeave={() => setAtivo(null)}
-                    onFocus={() => setAtivo(ponto.chave)}
-                    onBlur={() => setAtivo(null)}
+                    {...interacao}
                   >
-                    {ponto.chave === maisAlto && !destaque ? (
+                    {!telemovel && ponto.chave === maisAlto && !destaque ? (
                       <span className="grafico-rotulo-valor" style={{ bottom: `${altura}%` }}>
                         {eurosCurtos(ponto.faturacao)}
                       </span>
@@ -158,7 +196,7 @@ function GraficoEvolucao({ pontos, titulo }: { pontos: Ponto[]; titulo: string }
                       <span className="grafico-barra" style={{ height: `${altura}%` }} />
                     ) : null}
 
-                    {destaque ? (
+                    {destaque && !telemovel ? (
                       <span className="grafico-dica" style={{ bottom: `${Math.min(altura, 70)}%` }}>
                         <strong>{formatarPreco(ponto.faturacao)}</strong>
                         <span>{ponto.rotuloCompleto}</span>
@@ -174,9 +212,9 @@ function GraficoEvolucao({ pontos, titulo }: { pontos: Ponto[]; titulo: string }
           </div>
 
           <div className="grafico-x" aria-hidden="true">
-            {pontos.map((ponto) => (
+            {pontos.map((ponto, indice) => (
               <span key={ponto.chave} className={ponto.chave === hojeChave ? "hoje" : ""}>
-                {ponto.rotulo}
+                {comRotulo(indice) ? ponto.rotulo : ""}
               </span>
             ))}
           </div>
@@ -237,12 +275,19 @@ export default function EstatisticasView({ configuracoes, funcionarios, servicos
     return (marcacao: Agendamento) => marcacao.preco ?? precos.get(marcacao.servicoId) ?? 0;
   }, [servicos]);
 
-  const doPeriodo = useMemo(
+  // Tudo o que estava marcado no período, faltas incluídas...
+  const tudoDoPeriodo = useMemo(
     () => dentroDe(marcacoes, periodo.inicio, periodo.fim),
     [marcacoes, periodo.fim, periodo.inicio],
   );
+  // ...e o que conta para as contas, que é o mesmo menos as faltas.
+  const doPeriodo = useMemo(() => semFaltas(tudoDoPeriodo), [tudoDoPeriodo]);
+  // Uma visita falhada pode ter vários serviços: conta como uma falta, não três.
+  const faltas = new Set(
+    tudoDoPeriodo.filter((item) => item.status === "faltou").map((item) => item.visitaId),
+  ).size;
   const doAnterior = useMemo(
-    () => dentroDe(marcacoes, periodo.anterior.inicio, periodo.anterior.fim),
+    () => semFaltas(dentroDe(marcacoes, periodo.anterior.inicio, periodo.anterior.fim)),
     [marcacoes, periodo.anterior.fim, periodo.anterior.inicio],
   );
 
@@ -350,6 +395,11 @@ export default function EstatisticasView({ configuracoes, funcionarios, servicos
                   valor={variacao(atual.marcacoes, anterior.marcacoes)}
                   comparadoCom={periodo.comparadoCom}
                 />
+                {faltas > 0 ? (
+                  <small>
+                    {faltas} {faltas === 1 ? "falta" : "faltas"} fora das contas
+                  </small>
+                ) : null}
               </article>
 
               <article className="stat-card">
@@ -371,13 +421,14 @@ export default function EstatisticasView({ configuracoes, funcionarios, servicos
               </article>
             </div>
 
-            {atual.marcacoes === 0 ? (
+            {tudoDoPeriodo.length === 0 ? (
               <div className="estado-vazio">Não há marcações neste período.</div>
             ) : (
               <>
                 <GraficoEvolucao
                   pontos={serie}
                   titulo={tipo === "dia" ? "Faturação por hora" : "Faturação por dia"}
+                  telemovel={telemovel}
                 />
 
                 <div className="painel-duplo">

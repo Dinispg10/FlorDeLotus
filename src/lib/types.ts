@@ -20,16 +20,18 @@ export type Cliente = {
 };
 
 /**
- * Uma marcação ou está confirmada ou está por confirmar. Cancelar é apagar:
- * uma marcação que não vai acontecer não tem de ocupar espaço na agenda.
+ * Uma marcação está confirmada, por confirmar, ou o cliente faltou. Cancelar é
+ * apagar: uma marcação que não vai acontecer não tem de ocupar espaço na agenda.
+ * Faltar é diferente — aconteceu, fica no histórico, mas não entra nas contas.
  */
-export const STATUS_AGENDAMENTO = ["confirmado", "pendente"] as const;
+export const STATUS_AGENDAMENTO = ["confirmado", "pendente", "faltou"] as const;
 
 export type StatusAgendamento = (typeof STATUS_AGENDAMENTO)[number];
 
 export const ROTULO_STATUS: Record<StatusAgendamento, string> = {
   confirmado: "Confirmada",
   pendente: "Pendente",
+  faltou: "Faltou",
 };
 
 export type Agendamento = {

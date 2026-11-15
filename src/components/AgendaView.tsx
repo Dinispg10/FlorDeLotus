@@ -58,9 +58,13 @@ const lerZoomGuardado = () => {
 const ALTURA_CABECALHO = 56;
 /**
  * Cada funcionária tem a sua cor, e é ela que pinta as marcações.
- * O estado lê-se pelo preenchimento: cheio = confirmada, tracejado = pendente.
+ * O estado lê-se pelo preenchimento: cheio = confirmada, tracejado = pendente,
+ * cinzento = o cliente faltou (perde a cor da funcionária: não foi trabalho feito).
  */
 const corDoBloco = (status: StatusAgendamento, cor: string | undefined) => {
+  if (status === "faltou") {
+    return { background: "#f3f4f6", borderColor: "#d1d5db", borderLeftColor: "#9ca3af" };
+  }
   if (!cor) return {};
 
   const base = {

@@ -8,6 +8,7 @@ import {
 import {
   GRELHA_FIM,
   GRELHA_INICIO,
+  ROTULO_AUSENCIA,
   type Agendamento,
   type Ausencia,
   type Configuracoes,
@@ -258,6 +259,58 @@ export const validarAgendamento = (
 
   if (inicioMin < minutosDesdeMeiaNoite(horario.inicio) || fimMin > minutosDesdeMeiaNoite(horario.fim)) {
     return `Nesse dia${especial ? ` (${especial.nome})` : ""} o salão está aberto das ${horario.inicio} às ${horario.fim}. Esta marcação fica fora desse horário.`;
+  }
+
+  return null;
+};
+
+/* ---------------------------------------------------------------- */
+/* Repetir uma visita                                                */
+/* ---------------------------------------------------------------- */
+
+/** As próximas datas de uma visita que se repete de X em X semanas. */
+export const datasDeRepeticao = (data: string, semanas: number, vezes: number) =>
+  Array.from({ length: Math.max(0, vezes) }, (_, i) => somarDias(data, (i + 1) * semanas * 7));
+
+/**
+ * Porque é que esta visita não pode acontecer neste dia: salão fechado ou fora de
+ * horas, funcionária de folga, ou hora já ocupada. Null quando pode marcar-se.
+ *
+ * Verifica serviço a serviço, porque uma visita pode ter duas funcionárias.
+ */
+export const problemaNoDia = (entrada: {
+  dia: string;
+  clienteNome: string;
+  servicos: { funcionarioId: string; duracaoMinutos: number; inicio: string }[];
+  configuracoes: Configuracoes;
+  ausencias: Ausencia[];
+  /** O que já está marcado nesse dia (ou em todo o período, tanto faz). */
+  ocupado: Agendamento[];
+  nomeDe: (funcionarioId: string) => string;
+}): string | null => {
+  for (const servico of entrada.servicos) {
+    const candidato = {
+      funcionarioId: servico.funcionarioId,
+      data: entrada.dia,
+      inicio: servico.inicio,
+      duracaoMinutos: servico.duracaoMinutos,
+    };
+
+    const foraDeHoras = validarAgendamento(
+      { ...candidato, clienteNome: entrada.clienteNome },
+      entrada.configuracoes,
+    );
+    if (foraDeHoras) return foraDeHoras;
+
+    const quem = entrada.nomeDe(servico.funcionarioId);
+
+    const folga = ausenciaQueBloqueia(entrada.ausencias, candidato);
+    if (folga) return `${quem} está de ${ROTULO_AUSENCIA[folga.tipo].toLowerCase()}.`;
+
+    const conflito = encontrarConflito(entrada.ocupado, candidato);
+    if (conflito) {
+      return `${quem} já tem ${conflito.cliente} das ${conflito.inicio} às ${conflito.fim}.`;
+    }
   }
 
   return null;

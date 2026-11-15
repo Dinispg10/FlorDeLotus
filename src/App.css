@@ -213,6 +213,46 @@ input::-ms-clear {
   font-weight: 600;
 }
 
+/* "Esqueci-me da palavra-passe": um link, não um botão a competir com o Entrar. */
+.ligacao-discreta {
+  align-self: center;
+  border: none;
+  background: none;
+  padding: 4px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--roxo);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.ligacao-discreta:hover {
+  color: var(--roxo-vivo);
+}
+
+.ligacao-discreta:disabled {
+  color: var(--texto-suave);
+  cursor: default;
+  text-decoration: none;
+}
+
+.login-ajuda {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--roxo-claro);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--texto-suave);
+  text-align: left;
+}
+
+.login-ajuda.feito strong {
+  color: var(--texto);
+}
+
 .login-error {
   margin: 0;
   padding: 9px 12px;
@@ -1085,6 +1125,21 @@ button.cabecalho-coluna:hover {
   border-left-style: solid;
 }
 
+/* Quem faltou fica a cinzento, com o nome riscado: vê-se de longe que não veio. */
+.linha-marcacao.estado-faltou {
+  border-left-color: #9ca3af;
+  background: #f9fafb;
+}
+
+.linha-marcacao.estado-faltou .linha-cliente {
+  text-decoration: line-through;
+  color: var(--texto-suave);
+}
+
+.linha-marcacao.estado-faltou .inicial-funcionaria {
+  background: #9ca3af;
+}
+
 .dia-fechado-nota,
 .dia-sem-nada,
 .nota-folga {
@@ -1232,6 +1287,15 @@ button.cabecalho-coluna:hover {
   border: 1px dashed var(--roxo-suave);
   border-left-width: 3px;
   border-left-style: solid;
+}
+
+.bloco.estado-faltou {
+  color: var(--texto-suave);
+}
+
+.bloco.estado-faltou strong {
+  text-decoration: line-through;
+  font-weight: 600;
 }
 
 /* ---------------- Estatísticas ---------------- */
@@ -1447,6 +1511,18 @@ button.cabecalho-coluna:hover {
   color: var(--texto-suave);
   font-weight: 600;
   min-width: 0;
+  /* Os dias nunca se partem em duas linhas nem se empurram uns aos outros. */
+  white-space: nowrap;
+  overflow: visible;
+}
+
+/* O valor do dia escolhido, por baixo do título do cartão (telemóvel). */
+.grafico-escolhido {
+  margin: -8px 0 10px;
+}
+
+.grafico-escolhido strong {
+  color: var(--texto);
 }
 
 .grafico-x span.hoje {
@@ -1868,6 +1944,13 @@ button.cabecalho-coluna:hover {
   align-items: center;
 }
 
+.modal-actions-esquerda {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .campo-cliente {
   position: relative;
   display: flex;
@@ -2057,6 +2140,20 @@ button.cabecalho-coluna:hover {
 .estado-etiqueta.pendente {
   background: #fef3c7;
   color: #92400e;
+}
+
+.estado-etiqueta.faltou {
+  background: #e5e7eb;
+  color: #4b5563;
+}
+
+/* Na ficha do cliente: quantas vezes já não apareceu. */
+.aviso-faltas {
+  margin: -6px 0 10px;
+}
+
+.aviso-faltas strong {
+  color: var(--texto);
 }
 
 /* Páginas de lista: ocupam a largura toda do conteúdo. */
@@ -2890,6 +2987,105 @@ button.cabecalho-coluna:hover {
   margin-top: 18px;
 }
 
+/* ---------------- Repetir uma marcação ---------------- */
+
+.caixa-repetir {
+  width: min(100%, 460px);
+  text-align: left;
+  padding: 22px 22px 18px;
+  /* Num telemóvel deitado, ou com muitas datas, a janela não passa do ecrã. */
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+
+.repetir-resumo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--roxo-claro);
+  font-size: 0.82rem;
+  color: var(--texto-suave);
+}
+
+.repetir-resumo strong {
+  font-size: 0.95rem;
+  color: var(--texto);
+}
+
+.repetir-escolhas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+  /* Se um dos rótulos partir em duas linhas, as caixas ficam na mesma à mesma altura. */
+  align-items: end;
+}
+
+.repetir-escolhas label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--texto-suave);
+}
+
+.repetir-datas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.repetir-datas li {
+  padding: 7px 10px;
+  border: 1px solid var(--linha);
+  border-radius: 9px;
+}
+
+.repetir-datas label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+}
+
+.repetir-datas input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--roxo-vivo);
+  flex-shrink: 0;
+}
+
+.repetir-dia {
+  font-size: 0.86rem;
+  color: var(--texto);
+}
+
+.repetir-datas li.com-problema {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.repetir-datas li.com-problema .repetir-dia {
+  color: var(--texto-suave);
+}
+
+.repetir-datas em {
+  display: block;
+  margin: 3px 0 0 26px;
+  font-style: normal;
+  font-size: 0.74rem;
+  color: #92400e;
+}
+
 .confirmar-botoes .ghost-button {
   padding: 0.7rem 1rem;
 }
@@ -3074,6 +3270,16 @@ button.cabecalho-coluna:hover {
 .cartao-marcacao.estado-pendente {
   border-style: dashed;
   border-left-style: solid;
+}
+
+.cartao-marcacao.estado-faltou {
+  border-left-color: #9ca3af;
+  background: #f9fafb;
+}
+
+.cartao-marcacao.estado-faltou .cartao-corpo strong {
+  text-decoration: line-through;
+  color: var(--texto-suave);
 }
 
 .cartao-horas {
@@ -3383,6 +3589,12 @@ button.cabecalho-coluna:hover {
   .grafico {
     grid-template-columns: 44px minmax(0, 1fr);
     grid-template-rows: 180px auto;
+  }
+
+  /* Um mês tem 31 barras finas: a escolhida tem de dar-se a ver. */
+  .grafico-faixa.ativa .grafico-barra {
+    outline: 2px solid var(--roxo-suave);
+    outline-offset: 1px;
   }
 
   /* Estatísticas à largura do ecrã: nada de arrastar a página para o lado. */

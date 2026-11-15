@@ -52,9 +52,10 @@ CREATE TABLE agendamentos (
   data_hora_inicio TIMESTAMPTZ NOT NULL,
   data_hora_fim TIMESTAMPTZ NOT NULL,
   duracao_minutos INTEGER DEFAULT NULL,
-  -- Cancelar uma marcação é apagá-la; não há estados de cancelada nem concluída.
+  -- Cancelar uma marcação é apagá-la; não há estado de cancelada. "faltou" é outra
+  -- coisa: o cliente não apareceu, fica no histórico e não conta para as contas.
   status TEXT NOT NULL DEFAULT 'confirmado'
-    CHECK (status IN ('confirmado', 'pendente')),
+    CHECK (status IN ('confirmado', 'pendente', 'faltou')),
   telefone_cliente TEXT,
   observacoes TEXT,
   lembrete_enviado BOOLEAN DEFAULT FALSE,

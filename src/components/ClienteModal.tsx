@@ -64,10 +64,11 @@ export default function ClienteModal({
       servicos.find((servico) => servico.id === marcacao.servicoId)?.preco ??
       0;
 
-    // O histórico vem do mais recente para o mais antigo.
+    // O histórico vem do mais recente para o mais antigo. Os dias em que o cliente
+    // faltou não são visitas nem dinheiro gasto: ficam de fora destas contas.
     const agora = Date.now();
-    const passadas = historico.filter((item) => item.fimMs <= agora);
-    const futuras = historico.filter((item) => item.fimMs > agora);
+    const passadas = historico.filter((item) => item.fimMs <= agora && item.status !== "faltou");
+    const futuras = historico.filter((item) => item.fimMs > agora && item.status !== "faltou");
 
     return {
       // Uma visita é um dia: três serviços na mesma ida ao salão contam uma vez.
@@ -75,6 +76,10 @@ export default function ClienteModal({
       gasto: passadas.reduce((total, item) => total + precoDe(item), 0),
       ultima: passadas[0] ?? null,
       proxima: futuras[futuras.length - 1] ?? null,
+      // Uma visita falhada pode ter vários serviços: conta como uma falta, não três.
+      faltas: new Set(
+        historico.filter((item) => item.status === "faltou").map((item) => item.visitaId),
+      ).size,
     };
   }, [historico, servicos]);
 
@@ -206,6 +211,12 @@ export default function ClienteModal({
       {cliente ? (
         <section className="seccao-folgas">
           <h3>Marcações ({historico.length})</h3>
+
+          {resumo.faltas > 0 ? (
+            <p className="dica aviso-faltas">
+              Faltou <strong>{resumo.faltas}</strong> {resumo.faltas === 1 ? "vez" : "vezes"}.
+            </p>
+          ) : null}
 
           {erroHistorico ? (
             <p className="login-error">{erroHistorico}</p>

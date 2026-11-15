@@ -3,6 +3,7 @@ import { ausenciasDoDia, descreverDiaEspecial, diaEspecialDe, horarioDoDia } fro
 import { dataPorExtenso, hoje, somarDias } from "../lib/datas";
 import {
   ROTULO_AUSENCIA,
+  ROTULO_STATUS,
   type Agendamento,
   type Cliente,
   type Ausencia,
@@ -166,7 +167,9 @@ export default function AgendaTelemovel({
                 key={marcacao.id}
                 type="button"
                 className={`cartao-marcacao estado-${marcacao.status}`}
-                style={dona ? { borderLeftColor: dona.cor } : undefined}
+                style={
+                  dona && marcacao.status !== "faltou" ? { borderLeftColor: dona.cor } : undefined
+                }
                 onClick={() => onAbrirExistente(marcacao)}
               >
                 <span className="cartao-horas">
@@ -180,8 +183,10 @@ export default function AgendaTelemovel({
                     {funcionariaSelecionada === null && dona ? ` · ${dona.nome}` : ""}
                   </span>
                 </span>
-                {marcacao.status === "pendente" ? (
-                  <span className="estado-etiqueta pendente">Pendente</span>
+                {marcacao.status !== "confirmado" ? (
+                  <span className={`estado-etiqueta ${marcacao.status}`}>
+                    {ROTULO_STATUS[marcacao.status]}
+                  </span>
                 ) : null}
               </button>
             );
